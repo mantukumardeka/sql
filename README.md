@@ -1,4 +1,4 @@
-# InterviewQuestions SQl
+# InterviewQuestions SQL
 
 
 # 1174. Immediate Food Delivery II
