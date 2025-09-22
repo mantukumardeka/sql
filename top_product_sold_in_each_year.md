@@ -30,6 +30,26 @@ select * from sales;
 ```sql
 WITH ranked_sales AS (   SELECT     s.year,     s.product_id,     p.product_name,     s.quantity,     ROW_NUMBER() OVER (PARTITION BY s.year ORDER BY s.quantity DESC) AS rn   FROM sales s   JOIN products p ON s.product_id = p.product_id ) SELECT year, product_name, quantity FROM ranked_sales WHERE rn = 1;
 ```
+
+```sql
+WITH ranked_sales AS (
+    SELECT
+        s.year,
+        s.product_id,
+        p.product_name,
+        s.quantity,
+        ROW_NUMBER() OVER (PARTITION BY s.year ORDER BY s.quantity DESC) AS rn
+    FROM sales s
+    JOIN products p
+        ON s.product_id = p.product_id
+)
+SELECT
+    year,
+    product_name,
+    quantity
+FROM ranked_sales
+WHERE rn = 1;
+```
 ### 🔹 Yearly Product Quantity
 
 | year | product_name | quantity |
@@ -39,7 +59,23 @@ WITH ranked_sales AS (   SELECT     s.year,     s.product_id,     p.product_name
 | 2012 | Iphone       | 20       |
 
 ```sql
-WITH ranked_sales AS (   SELECT     s.year,     s.product_id,     p.product_name,     s.quantity,     ROW_NUMBER() OVER (PARTITION BY s.year ORDER BY s.quantity DESC) AS rn   FROM sales s   JOIN products p ON s.product_id = p.product_id ) SELECT year, product_name, quantity FROM ranked_sales WHERE rn = 2;
-```
+WITH ranked_sales AS (
+    SELECT
+        s.year,
+        s.product_id,
+        p.product_name,
+        s.quantity,
+        ROW_NUMBER() OVER (PARTITION BY s.year ORDER BY s.quantity DESC) AS rn
+    FROM sales s
+    JOIN products p
+        ON s.product_id = p.product_id
+)
+SELECT
+    year,
+    product_name,
+    quantity
+FROM ranked_sales
+WHERE rn = 2;
+
 
 ———————————————————
