@@ -51,4 +51,20 @@ JOIN orders_1 o ON c. customer_id =o.customer_id
 WHERE c. customer_id NOT IN ( SELECT customer_id FROM Returns_1);
 
 
+ -- ==============================================
+-- BOLD: COUNT HOW MANY CUSTOMERS PLACED > 5 ORDERS
+-- ==============================================
+
+ select customer_id, count(*)  from orders_1 group by customer_id having count(*)>5;
+ 
+
+SELECT customer_id, COUNT(*) AS total_orders
+FROM Orders
+GROUP BY customer_id
+HAVING COUNT(*) > 5;
+
+-- **USING SUB QUESRY**
+ 
+ with tt as(select customer_id, count(*)  from orders_1 group by customer_id having count(*)>5) select count(*) from tt;
+ 
 
