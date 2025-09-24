@@ -76,4 +76,7 @@ select c.* , o.* from Customer c left join orders o on c.customer_id=o.customer_
 
 select c.* , o.order_id,o.order_amount from Customer c left join orders o on c.customer_id=o.customer_id where o.customer_id is NULL;
 
+select top 3 from orders order by desc;
+
+
 
