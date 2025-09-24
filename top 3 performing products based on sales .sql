@@ -29,5 +29,5 @@ select product_name ,sum(quantity_sold) as total_sum  from sales group by produc
 with tt as (select  product_name, sum(quantity_sold)as total_sold, rank() over(order by sum(quantity_sold) desc)  as renk1 from sales group by  product_name) select product_name,total_sold from tt where renk1<=3;
 
 
-
+select * from (select product_name, sum(quantity_sold) as total_sold, rank() over(order by sum(quantity_sold) desc ) as rnk from sales group by product_name ) a where rnk<=3;
 
