@@ -43,7 +43,15 @@ WHERE pmod(datediff(hire_date, '1970-01-01'), 7) NOT IN (5, 6);
 -- 5 = Saturday, 6 = Sunday
 
 
+-- Another way
 
-
+SELECT
+    DAYNAME(sale_date) AS day_name,
+    MONTHNAME(sale_date) AS month_name,
+    CASE
+        WHEN DAYOFWEEK(sale_date) IN (1,7) THEN 'Weekend'
+        ELSE 'Weekday'
+    END AS day_type
+FROM sales;
 
 
