@@ -21,6 +21,18 @@ SELECT IFNULL(
 ) AS SecondHighestSalary;
 
 
+-- Using Max() 
+
 select max(salary) from employee_176 where salary< (select max(salary) from employee_176);
 
 select * from Employee_176;
+
+select max(salary) as SecondHighestSalary from employee176 where salary < (select max(salary) from employee176);
+
+-- Using dense_rank() 
+
+ select salary from (select salary, dense_rank() over(order by salary desc) as rnk from employee_176) a where rnk=2;
+ 
+ 
+ -- usig limit and Ofset
+ select salary from employee_176 limit 1 offset 1;
