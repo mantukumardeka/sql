@@ -1,7 +1,0 @@
-
-
-show databases;
-
-use mkd;
-
--- 
