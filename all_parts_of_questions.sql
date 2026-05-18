@@ -180,6 +180,22 @@ ON s.airway = d.airway;
 DROP TABLE IF EXISTS emp; CREATE TABLE emp (Emp_Id INT, Emp_name VARCHAR(50), Salary INT, Manager_Id INT); INSERT INTO emp VALUES (1,'A',50000,9),(2,'B',75000,7),(3,'C',40000,9),(4,'D',60000,8),(5,'E',80000,9),(6,'F',45000,9),(7,'G',90000,NULL),(8,'H',55000,7),(9,'I',65000,8);
 select * from emp;
 
+-- +--------+----------+--------+------------+
+-- | Emp_Id | Emp_name | Salary | Manager_Id |
+-- +--------+----------+--------+------------+
+-- |      1 | A        |  50000 |          9 |
+-- |      2 | B        |  75000 |          7 |
+-- |      3 | C        |  40000 |          9 |
+-- |      4 | D        |  60000 |          8 |
+-- |      5 | E        |  80000 |          9 |
+-- |      6 | F        |  45000 |          9 |
+-- |      7 | G        |  90000 |     <null> |
+-- |      8 | H        |  55000 |          7 |
+-- |      9 | I        |  65000 |          8 |
+-- +--------+----------+--------+------------+
+
+
+
 SELECT e.Manager_Id, AVG(e.Salary) AS avsum FROM emp e JOIN emp m ON m.Emp_Id = e.Manager_Id GROUP BY e.Manager_Id;
 
 -- ==================================================================================
@@ -192,6 +208,25 @@ DROP TABLE IF EXISTS dept; CREATE TABLE dept(dept_id INT, dept_name VARCHAR(50),
 
 select * from employee;
 select * from dept;
+
+-- +--------+---------+------+--------+
+-- | emp_id | dept_id | name | rating |
+-- +--------+---------+------+--------+
+-- |    123 |      10 | emp1 |      5 |
+-- |    234 |      10 | emp2 |      5 |
+-- |    345 |      10 | emp3 |      4 |
+-- |    456 |  <null> | emp4 |      5 |
+-- |    567 |      11 | emp5 |      3 |
+-- +--------+---------+------+--------+
+
+-- +---------+-----------+------------------+
+-- | dept_id | dept_name | updated_datetime |
+-- +---------+-----------+------------------+
+-- |      10 | it        | 2023-07-31       |
+-- |      11 | finance   | 2023-07-30       |
+-- |      11 | invalid   | 2022-01-01       |
+-- |  <null> | others    | 2023-07-30       |
+-- +---------+-----------+------------------+
 
 -- DepartmentID, DepartmentName, count of Rating including null department?
 
@@ -238,6 +273,18 @@ DROP TABLE IF EXISTS salarydiff; CREATE TABLE salarydiff(emp INT, date DATE, sal
 
 select * from salarydiff;
 
+-- +-----+------------+--------+
+-- | emp | date       | salary |
+-- +-----+------------+--------+
+-- |   1 | 2022-01-01 |   1000 |
+-- |   1 | 2022-02-01 |   2000 |
+-- |   1 | 2022-03-01 |   3000 |
+-- |   1 | 2022-04-01 |   1000 |
+-- |   2 | 2022-01-01 |   2220 |
+-- |   2 | 2022-02-01 |   3450 |
+-- |   2 | 2022-03-01 |   3450 |
+-- +-----+------------+--------+
+
 with tt as (select emp, date,salary, lag(salary) over(partition by emp order by date) as previoussal from salarydiff) select emp,date
 ,salary, case when salary<previoussal then previoussal else salary end as updatedsalary from tt;
 
@@ -249,6 +296,21 @@ with tt as (select emp, date,salary, lag(salary) over(partition by emp order by 
 DROP TABLE IF EXISTS transactions1; CREATE TABLE transactions1(user_id INT, order_date DATE, order_type VARCHAR(20)); INSERT INTO transactions1 VALUES (1,'2024-01-02','critical'),(1,'2024-01-03','critical'),(1,'2024-01-09','critical'),(1,'2024-01-10','critical'),(2,'2024-01-02','critical'),(2,'2024-01-03','normal'),(2,'2024-01-09','critical'),(3,'2024-01-02','critical'),(3,'2024-01-03','critical'),(3,'2024-01-10','critical');
 
 select * from transactions1;
+
+-- +---------+------------+------------+
+-- | user_id | order_date | order_type |
+-- +---------+------------+------------+
+-- |       1 | 2024-01-02 | critical   |
+-- |       1 | 2024-01-03 | critical   |
+-- |       1 | 2024-01-09 | critical   |
+-- |       1 | 2024-01-10 | critical   |
+-- |       2 | 2024-01-02 | critical   |
+-- |       2 | 2024-01-03 | normal     |
+-- |       2 | 2024-01-09 | critical   |
+-- |       3 | 2024-01-02 | critical   |
+-- |       3 | 2024-01-03 | critical   |
+-- |       3 | 2024-01-10 | critical   |
+-- +---------+------------+------------+
 
 SELECT 
     user_id,
@@ -273,6 +335,17 @@ HAVING COUNT(*) > 2;
 
 DROP TABLE IF EXISTS transactions; CREATE TABLE transactions (txn_id INT, user_id INT, txn_time TIMESTAMP, amount INT); INSERT INTO transactions VALUES (1,101,'2024-01-01 10:00',500),(2,101,'2024-01-01 10:05',500),(3,101,'2024-01-01 10:20',500),(4,102,'2024-01-01 11:00',300),(5,102,'2024-01-01 11:08',300),(6,102,'2024-01-01 11:30',400);
 select * from transactions;
+
+-- +--------+---------+---------------------+--------+
+-- | txn_id | user_id | txn_time            | amount |
+-- +--------+---------+---------------------+--------+
+-- |      1 |     101 | 2024-01-01 10:00:00 |    500 |
+-- |      2 |     101 | 2024-01-01 10:05:00 |    500 |
+-- |      3 |     101 | 2024-01-01 10:20:00 |    500 |
+-- |      4 |     102 | 2024-01-01 11:00:00 |    300 |
+-- |      5 |     102 | 2024-01-01 11:08:00 |    300 |
+-- |      6 |     102 | 2024-01-01 11:30:00 |    400 |
+-- +--------+---------+---------------------+--------+
 
 --   Use lag, partiton by user_id and amount
 SELECT * 
@@ -300,6 +373,19 @@ AND ABS(TIMESTAMPDIFF(MINUTE, t1.txn_time, t2.txn_time)) <= 10;
 -- ==================================================================================
 DROP TABLE IF EXISTS emp_manager; CREATE TABLE emp_manager (emp_id INT, emp_name VARCHAR(50), manager_id INT, salary INT, effective_date DATE); INSERT INTO emp_manager VALUES (1,'John',10,50000,'2024-01-01'),(1,'John',10,58000,'2024-03-01'),(2,'Mary',10,42000,'2024-01-01'),(3,'Bob',20,45000,'2024-02-01'),(3,'Bob',20,48000,'2024-04-01'),(10,'Emma',20,90000,'2024-01-01'),(10,'Emma',20,95000,'2024-05-01'),(20,'Raj',NULL,110000,'2024-01-01');
 select * from emp_manager;
+
+-- +--------+----------+------------+--------+----------------+
+-- | emp_id | emp_name | manager_id | salary | effective_date |
+-- +--------+----------+------------+--------+----------------+
+-- |      1 | John     |         10 |  50000 | 2024-01-01     |
+-- |      1 | John     |         10 |  58000 | 2024-03-01     |
+-- |      2 | Mary     |         10 |  42000 | 2024-01-01     |
+-- |      3 | Bob      |         20 |  45000 | 2024-02-01     |
+-- |      3 | Bob      |         20 |  48000 | 2024-04-01     |
+-- |     10 | Emma     |         20 |  90000 | 2024-01-01     |
+-- |     10 | Emma     |         20 |  95000 | 2024-05-01     |
+-- |     20 | Raj      |     <null> | 110000 | 2024-01-01     |
+-- +--------+----------+------------+--------+----------------+
 
 -- Find each employee’s latest salary ?
 SELECT emp_id, emp_name, manager_id, salary, effective_date FROM ( SELECT *, ROW_NUMBER() OVER (PARTITION BY emp_id ORDER BY effective_date DESC) AS rn FROM emp_manager ) t WHERE rn = 1;
@@ -332,6 +418,26 @@ SELECT l.emp_id, l.emp_name, l.salary AS emp_latest_salary, l.manager_id, m.max_
 DROP TABLE IF EXISTS spent; CREATE TABLE spent (order_id INT, customer_id INT, order_date DATE, quantity INT, unit_price INT); INSERT INTO spent VALUES (1,101,'2026-03-05',2,500),(2,101,'2026-03-05',1,200),(3,102,'2026-03-10',3,400),(4,103,'2026-03-15',1,900),(5,104,'2026-03-20',5,300),(6,105,'2026-03-25',2,1500),(7,101,'2026-03-28',1,800),(8,102,'2026-03-18',2,600),(9,103,'2026-03-22',3,700),(10,104,'2026-03-27',1,2500),(11,106,'2026-03-12',4,500),(12,107,'2026-03-14',2,1200),(13,108,'2026-03-16',1,3000),(14,105,'2026-03-29',1,2000),(15,109,'2026-03-30',3,900);
 select * from spent;
 
+-- +----------+-------------+------------+----------+------------+
+-- | order_id | customer_id | order_date | quantity | unit_price |
+-- +----------+-------------+------------+----------+------------+
+-- |        1 |         101 | 2026-03-05 |        2 |        500 |
+-- |        2 |         101 | 2026-03-05 |        1 |        200 |
+-- |        3 |         102 | 2026-03-10 |        3 |        400 |
+-- |        4 |         103 | 2026-03-15 |        1 |        900 |
+-- |        5 |         104 | 2026-03-20 |        5 |        300 |
+-- |        6 |         105 | 2026-03-25 |        2 |       1500 |
+-- |        7 |         101 | 2026-03-28 |        1 |        800 |
+-- |        8 |         102 | 2026-03-18 |        2 |        600 |
+-- |        9 |         103 | 2026-03-22 |        3 |        700 |
+-- |       10 |         104 | 2026-03-27 |        1 |       2500 |
+-- |       11 |         106 | 2026-03-12 |        4 |        500 |
+-- |       12 |         107 | 2026-03-14 |        2 |       1200 |
+-- |       13 |         108 | 2026-03-16 |        1 |       3000 |
+-- |       14 |         105 | 2026-03-29 |        1 |       2000 |
+-- |       15 |         109 | 2026-03-30 |        3 |        900 |
+-- +----------+-------------+------------+----------+------------+
+
 SELECT * FROM ( SELECT customer_id, SUM(quantity * unit_price) AS total_spent, DENSE_RANK() OVER (ORDER BY SUM(quantity * unit_price) DESC) rnk FROM spent WHERE order_date >= DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01') AND order_date < DATE_FORMAT(CURDATE(), '%Y-%m-01') GROUP BY customer_id ) t WHERE rnk = 1;
 
 -- ==================================================================================
@@ -342,9 +448,55 @@ DROP TABLE IF EXISTS city_customer; CREATE TABLE city_customer (order_id INT, cu
 
 select * from city_customer;
 
+-- +----------+-------------+-----------+--------+------------+
+-- | order_id | customer_id | city      | amount | order_date |
+-- +----------+-------------+-----------+--------+------------+
+-- |        1 |         101 | Delhi     |    500 | 2026-03-01 |
+-- |        2 |         101 | Delhi     |    700 | 2026-03-05 |
+-- |        3 |         102 | Delhi     |   1200 | 2026-03-10 |
+-- |        4 |         103 | Delhi     |    900 | 2026-03-15 |
+-- |        5 |         104 | Mumbai    |   1500 | 2026-03-20 |
+-- |        6 |         105 | Mumbai    |   2000 | 2026-03-25 |
+-- |        7 |         104 | Mumbai    |    500 | 2026-03-28 |
+-- |        8 |         106 | Bangalore |   3000 | 2026-03-18 |
+-- |        9 |         107 | Bangalore |   2500 | 2026-03-22 |
+-- |       10 |         106 | Bangalore |   1000 | 2026-03-27 |
+-- |       11 |         108 | Delhi     |    600 | 2026-03-29 |
+-- |       12 |         109 | Mumbai    |   1800 | 2026-03-30 |
+-- +----------+-------------+-----------+--------+------------+
+
 
 -- Top 3 customers per city
 WITH order_totals AS ( SELECT customer_id, city, SUM(amount) AS total_spent, COUNT(*) AS order_count, AVG(amount) AS avg_order_value FROM city_customer GROUP BY customer_id, city ), ranked AS ( SELECT *, DENSE_RANK() OVER (PARTITION BY city ORDER BY total_spent DESC) AS city_rank FROM order_totals ) SELECT customer_id, city, total_spent, order_count, avg_order_value FROM ranked WHERE city_rank <= 3;
+
+WITH order_totals AS (
+    SELECT
+        customer_id,
+        city,
+        SUM(amount) AS total_spent,
+        COUNT(*) AS order_count,
+        AVG(amount) AS avg_order_value
+    FROM city_customer
+    GROUP BY customer_id, city
+),
+ranked AS (
+    SELECT
+        *,
+        DENSE_RANK() OVER (
+            PARTITION BY city
+            ORDER BY total_spent DESC
+        ) AS city_rank
+    FROM order_totals
+)
+SELECT
+    customer_id,
+    city,
+    total_spent,
+    order_count,
+    avg_order_value
+FROM ranked
+WHERE city_rank <= 3;
+
 
 -- “What % of city revenue comes from each customer?”
 
@@ -356,7 +508,18 @@ WITH order_totals AS ( SELECT customer_id, city, SUM(amount) AS total_spent, COU
  DROP TABLE IF EXISTS passenger; CREATE TABLE passenger (sn INT, name VARCHAR(10), start VARCHAR(50), end VARCHAR(50)); INSERT INTO passenger VALUES (1,'A','Chennai','Bangalore'),(1,'A','Bangalore','Pune'),(1,'A','Pune','Mumbai'),(1,'A','Mumbai','Delhi'),(2,'B','Pune','Mumbai'),(2,'B','Mumbai','Bangalore');
 select * from passenger;
 
---  Get Source and destination --
+-- | sn | name | start     | end       |
+-- +----+------+-----------+-----------+
+-- |  1 | A    | Chennai   | Bangalore |
+-- |  1 | A    | Bangalore | Pune      |
+-- |  1 | A    | Pune      | Mumbai    |
+-- |  1 | A    | Mumbai    | Delhi     |
+-- |  2 | B    | Pune      | Mumbai    |
+-- |  2 | B    | Mumbai    | Bangalore |
+-- +----+------+-----------+-----------+
+
+--  Get Source and destination -- 
+--  be carefull which column need to as compare, here SN, may be fligth somewhere else
 
 
 select * from passenger;
@@ -400,6 +563,19 @@ select  s.airway,s.src,d.dest  from srctab s join  desttab d on s.airway=d.airwa
 DROP TABLE IF EXISTS emp_dep; CREATE TABLE emp_dep (EmployeeID INT, EmployeeName VARCHAR(50), Department VARCHAR(50), ManagerID INT, HireDate DATE, MonthlySalary INT, SalesAmount INT, Month DATE); INSERT INTO emp_dep VALUES (1,'Alice','Sales',101,'2020-01-01',90000,150000,'2025-01-01'),(1,'Alice','Sales',101,'2020-01-01',90000,200000,'2025-02-01'),(2,'Bob','Sales',101,'2021-03-15',85000,100000,'2025-01-01'),(2,'Bob','Sales',101,'2021-03-15',85000,120000,'2025-02-01'),(3,'Carol','HR',102,'2019-07-10',95000,0,'2025-01-01'),(4,'David','HR',102,'2020-06-25',87000,0,'2025-02-01'),(5,'Evan','IT',103,'2022-05-05',80000,60000,'2025-01-01'),(5,'Evan','IT',103,'2022-05-05',80000,75000,'2025-02-01');
 select * from emp_dep;
 
+-- +------------+--------------+------------+-----------+------------+---------------+-------------+------------+
+-- | EmployeeID | EmployeeName | Department | ManagerID | HireDate   | MonthlySalary | SalesAmount | Month      |
+-- +------------+--------------+------------+-----------+------------+---------------+-------------+------------+
+-- |          1 | Alice        | Sales      |       101 | 2020-01-01 |         90000 |      150000 | 2025-01-01 |
+-- |          1 | Alice        | Sales      |       101 | 2020-01-01 |         90000 |      200000 | 2025-02-01 |
+-- |          2 | Bob          | Sales      |       101 | 2021-03-15 |         85000 |      100000 | 2025-01-01 |
+-- |          2 | Bob          | Sales      |       101 | 2021-03-15 |         85000 |      120000 | 2025-02-01 |
+-- |          3 | Carol        | HR         |       102 | 2019-07-10 |         95000 |           0 | 2025-01-01 |
+-- |          4 | David        | HR         |       102 | 2020-06-25 |         87000 |           0 | 2025-02-01 |
+-- |          5 | Evan         | IT         |       103 | 2022-05-05 |         80000 |       60000 | 2025-01-01 |
+-- |          5 | Evan         | IT         |       103 | 2022-05-05 |         80000 |       75000 | 2025-02-01 |
+-- +------------+--------------+------------+-----------+------------+---------------+-------------+------------+
+
 -- 1) For each employee, calculate total sales and average monthly sales.
 select EmployeeID,sum(SalesAmount) as total_Sale, avg(SalesAmount) as avgsale from emp_dep group by EmployeeID;
 
@@ -442,7 +618,23 @@ DROP TABLE IF EXISTS users; CREATE TABLE users (id INT, email VARCHAR(100)); INS
 
 select * from users;
 
+-- +----+------------+
+-- | id | email      |
+-- +----+------------+
+-- |  1 | a@test.com |
+-- |  2 | b@test.com |
+-- |  3 | a@test.com |
+-- |  4 | c@test.com |
+-- |  5 | b@test.com |
+-- +----+------------+
 
+
+SELECT
+    email,
+    COUNT(*) AS duplicate_count
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
 
 
 
