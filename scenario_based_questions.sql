@@ -7,20 +7,7 @@ show tables;
 -- SCENARION 1: 
 -- output as only P3 (who likes only Banana and Apple) 
 -- ##############################################################################################
-drop table if exists person_data;
-CREATE TABLE person_data (
-    persons VARCHAR(5),
-    fruit VARCHAR(20)
-);
-
-INSERT INTO person_data VALUES
-('P1','Apple'),
-('P1','Banana'),
-('P1','Mango'),
-('P3','Banana'),
-('P3','Apple'),
-('P2','Apple'),
-('P2','Mango');
+DROP TABLE IF EXISTS person_data; CREATE TABLE person_data (persons VARCHAR(5), fruit VARCHAR(20)); INSERT INTO person_data VALUES ('P1','Apple'),('P1','Banana'),('P1','Mango'),('P3','Banana'),('P3','Apple'),('P2','Apple'),('P2','Mango');
 
 select * from person_data;
 -- WHO LIKES banana and apple--how to get it?
@@ -31,6 +18,8 @@ select persons from person_data where fruit in ("Apple","Banana") group by perso
 
 -- SCENARION 2: Find the difference between apples sold and oranges sold per day.
 -- ##############################################################################################
+
+drop table if exists sale_table;
 CREATE TABLE sale_table (
     fruit VARCHAR(20),
     sale_date DATE,
@@ -76,7 +65,7 @@ WHERE sold1 IS NOT NULL;
 -- ##############################################################################################
 -- SCENARION 3:  Remove all special value 
 -- ##############################################################################################
-
+drop table if exists sp_val;
 CREATE TABLE sp_val (
     val1 VARCHAR(10)
 );
@@ -104,6 +93,7 @@ FROM sp_val;
 -- SCENARION 4 : Find average salary of employees for each department and order employees within a department by age.
 -- ##############################################################################################
 
+drop table if exists emp1;
 CREATE TABLE emp1 (
     name VARCHAR(50),
     age INT,
@@ -140,6 +130,7 @@ ORDER BY dept, age;
 -- 3️⃣ 3rd row → Country with lowest population
 -- ##############################################################################################
 
+drop table if exists country_data;
 CREATE TABLE country_data (country VARCHAR(20), population INT); 
 INSERT INTO country_data VALUES ('Brazil',10000),('India',15000),('US',20000),('UK',12000),('Europe',12000);
 
@@ -152,6 +143,8 @@ union all select min(population) from country_data;
 -- ##############################################################################################
 -- SCENARION  6: Find the user-id's which are having more outgoing messages for feb month compared to Jan Month
 -- ##############################################################################################
+drop table if exists mobile_data;
+
 CREATE TABLE mobile_data (
     user_id INT,
     mobilenumber BIGINT,
@@ -187,12 +180,13 @@ HAVING feb_msgs > jan_msgs;
 
 -- ##############################################################################################
 -- SCENARION  7: 
-
 -- Find highest temperature per city
 -- Find temperature difference between consecutive dates
 -- Find cities where temperature increased
 -- Use LAG / LEAD window functions
 -- ##############################################################################################
+
+drop table if exists temperature_data;
 CREATE TABLE temperature_data (
     city VARCHAR(10),
     tdate DATE,
@@ -255,15 +249,13 @@ WHERE rn <= 2;
 
 -- #########################################################################################################
 -- SCENARION  8: 
-
--- If you want, I can also show some tricky SQL interview questions using this table, like:
 -- Find names starting with vowel
 -- Find names ending with vowel
 -- Find palindrome names
 -- Count number of characters in each name
 -- Find duplicate characters in names
 -- #######################################################################################################
-
+drop table if exists b1;
 CREATE TABLE b1 (bname VARCHAR(20));
 
 INSERT INTO b1 VALUES ('Hema'),('Sai'),('Gomathi'),('Gayatri'),('Liyansh'),('Shah'),('Anu'),('Elango'),('India'),('oli');
@@ -298,6 +290,7 @@ select * from b1 where bname  regexp '^[AEIOUaeiou].*[AEIOUaeiou]$';
 -- SCENARION  9:  You need to find the top 2 performing markets in each location based on amt.
 
 -- ################################################################################################
+drop table if exists market;
 CREATE TABLE market (market_id INT, market_name VARCHAR(50), amt INT, location VARCHAR(50));
 
 INSERT INTO market VALUES (101,'D-mart',500,'chennai'),(102,'super store',300,'chennai'),(103,'coludera',300,'chennai'),(105,'super store',200,'Pondy'),(104,'walmart',100,'Pondy');
@@ -363,21 +356,13 @@ select salary from emp_data group by salary having count(employee)=1);
 
 
 
-
-
-
-
 -- ################################################################################################
-
 -- SCENARION  11:  
-
--- Please provide SQL query for the below questions :
 -- 1) Product which has been purchased by large number of consumers
 -- 2) Product which has not been sold so far
 -- 3) Customer who has purchased any product more than once per day 
 
 -- ################################################################################################
-
 
 DROP TABLE IF EXISTS Product;
 CREATE TABLE Product (PROD_ID VARCHAR(10), PROD_NAME VARCHAR(50), PROD_DESC VARCHAR(50), PROD_PRICE INT);
@@ -426,13 +411,9 @@ HAVING COUNT(*) > 1;
 
 
 -- ################################################################################################
-
 -- SCENARION  12:  
-
 -- You need to return:,product_id,size,date,amount,product_description
-
 -- But the condition is:
-
 -- ✅ For each product_id, select the product_description having the maximum length
 -- ✅ Result should have no duplicate product_id
 
@@ -601,10 +582,6 @@ FROM
 ) p;
 
 
-
-
-
-
 -- ################################################################################################
 
 -- SCENARION  15:  
@@ -640,7 +617,7 @@ select * from Maintenance ) s on e.id=s.id group by e.name, e.id ;
 
 -- ################################################################################################
 
-
+drop table if exists customers14;
 CREATE TABLE customers14 (
     custid INT,
     firstname VARCHAR(50),
@@ -786,7 +763,7 @@ join distance b on a.from_city=b.to_city and a.to_city=b.from_city where a.from_
 -- -
 
 -- ################################################################################################
-
+drop table if exists TeamName;
 CREATE TABLE teams (
     Id INT,
     TeamName VARCHAR(50)
@@ -833,8 +810,8 @@ ON a.Id < b.Id;
 -- ################################################################################################
 
 use scenario;
+drop table if exists store_data;
 CREATE TABLE store_data (store INT, entries VARCHAR(100));
-
 INSERT INTO store_data (store, entries) VALUES
 (1,'p1,p2,p3,p4'),
 (2,'p1'),
@@ -854,7 +831,7 @@ select store, length(entries) -length(replace(entries, ',', '')) + 1 as entrycou
 
 -- ################################################################################################
 
-
+drop table if exists places;
 CREATE TABLE places (
     name VARCHAR(50),
     travel_location VARCHAR(200),
@@ -950,6 +927,245 @@ INSERT INTO places (name, travel_location, age) VALUES
 -- ################################################################################################
 
 -- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 27:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 28:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 26:
+
+
+-- ################################################################################################
+
+
+
+
+
+
+
+
+-- ################################################################################################
+
+-- SCENARION 40:
 
 
 -- ################################################################################################

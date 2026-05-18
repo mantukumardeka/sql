@@ -19,7 +19,7 @@ with cte as (select product_id, sum(list_price) as sales from orders  group by p
 select product_id, sales from cte order by sales desc;
 
 -- ====================================================================
--- 3) top 5 product_id, category by sales
+-- 3) top 5 product_id, category by sales   (A)
 -- ====================================================================
 with tt as 
 (select  category ,product_id, sum(list_price) as sales from orders  group by product_id,category)
@@ -42,7 +42,8 @@ select * from cte where rn<=5;
 -- 5) find month over month growth comparison for 2022 and 2023 sales eg : jan 2022 vs jan 2023
 -- ====================================================================
 
-with tt as (select year(order_date) as order_year, month(order_date) as order_month , sum(list_price) as sales from orders group by  year(order_date) ,month(order_date))
+with tt as (select year(order_date) as order_year, month(order_date) as order_month , 
+sum(list_price) as sales from orders group by  year(order_date) ,month(order_date))
 
 select order_month, 
  sum(case when order_year=2022 then sales else 0 end ) as 2022_sales,
@@ -100,6 +101,7 @@ SELECT
 FROM orders
 GROUP BY YEAR(order_date);
 
+select * from orders;
 
 
 -- ====================================================================
@@ -174,10 +176,10 @@ ORDER BY year_order, month_order_date;
 
 
 -- ====================================================================
--- 13)  get order_id, new customer and repeat customer count
+-- 13)  get order_id, new customer and repeat customer count  (A)
 -- ====================================================================
 
-CREATE TABLE customer_orders (order_id INT PRIMARY KEY, customer_id INT, order_date DATE, order_amount INT); INSERT INTO customer_orders VALUES (1,100,'2022-01-01',2000),(2,200,'2022-01-01',2500),(3,300,'2022-01-01',2100),(4,100,'2022-01-02',2000),(5,400,'2022-01-02',2200),(6,500,'2022-01-02',2700),(7,100,'2022-01-03',3000),(8,400,'2022-01-03',1000),(9,600,'2022-01-03',3000);
+drop table if exists customer_orders; CREATE TABLE customer_orders (order_id INT PRIMARY KEY, customer_id INT, order_date DATE, order_amount INT); INSERT INTO customer_orders VALUES (1,100,'2022-01-01',2000),(2,200,'2022-01-01',2500),(3,300,'2022-01-01',2100),(4,100,'2022-01-02',2000),(5,400,'2022-01-02',2200),(6,500,'2022-01-02',2700),(7,100,'2022-01-03',3000),(8,400,'2022-01-03',1000),(9,600,'2022-01-03',3000);
 
 -- min, cte, join inclusing case, again cte and count
 select * from customer_orders;
@@ -196,7 +198,7 @@ select order_date, sum(first_visit_count), sum(repaet_visit_count)  from  visit_
 
 
 -- ====================================================================
--- 14)  Get team_name, no_of_matches_played, no_of_wins ,no_ot_losses
+-- 14)  Get team_name, no_of_matches_played, no_of_wins ,no_ot_losses  '(A)'
 -- ====================================================================
 
 drop table icc_world_cup;
@@ -214,7 +216,7 @@ group by team;
 
 
 -- ====================================================================
---  15)  Get name, most_visited_floor, Total_visit, used_resources
+--  15)  Get name, most_visited_floor, Total_visit, used_resources  (A)
 -- ====================================================================
 
 drop table entries;
@@ -354,7 +356,7 @@ select  emp_id, in_time, out_time from cte where in_time > out_time or out_time 
 
 
 -- ====================================================================
--- 20)  Convert Comma Separated Values into Rows-- JSON_TABLE
+-- 20)  Convert Comma Separated Values into Rows-- JSON_TABLE (A)
 -- ====================================================================
 drop table airbnb_searches;
 CREATE TABLE airbnb_searches (user_id INT, date_searched DATE, filter_room_types VARCHAR(200)); DELETE FROM airbnb_searches; INSERT INTO airbnb_searches VALUES (1,'2022-01-01','entire home,private room'),(2,'2022-01-02','entire home,shared room'),(3,'2022-01-02','private room,shared room'),(4,'2022-01-03','private room');
@@ -390,7 +392,8 @@ drop table emp22; create table emp22 as select * from top50.emp20;
 select * from emp22;
 
 select e.id, js.value from emp22 e join
-json_table ( concat ( '["' ,replace(  names, ',' , '","'   )  , '"]' ), '$[*]' columns (value varchar(10) path '$' )     )as js
+json_table ( concat ( '["' ,replace(  names, ',' , '","'   )  , '"]' ), 
+'$[*]' columns (value varchar(10) path '$' )     )as js
 
 
 -- ====================================================================
@@ -401,11 +404,12 @@ drop table emp23;CREATE TABLE emp23 (emp_id INT, departments VARCHAR(100)); INSE
 select * from emp23;
 
 select e.emp_id,js.value from emp23 e join 
-json_table ( concat( '["' ,replace(departments,',', '","')  ,  '"]' ), '$[*]' columns (value varchar(20)  path '$' )) as js
+json_table ( concat( '["' ,replace(departments,',', '","')  ,  '"]' ), 
+'$[*]' columns (value varchar(20)  path '$' )) as js
 
 
 -- ====================================================================
--- 24) Find the name whose array contains the maximum number of 1’s.”
+-- 24) Find the name whose array contains the maximum number of 1’s.”  (A)
 -- ====================================================================
 drop table emp24;CREATE TABLE emp24 (name VARCHAR(10), rank_arr JSON); INSERT INTO emp24 VALUES ('a','[1,1,1,3]'),('b','[1,2,3,4]'),('c','[1,1,1,1,4]'),('d','[3]');
 
@@ -414,7 +418,7 @@ select * from emp24;
 SELECT name, jt.val
 FROM emp24,
 JSON_TABLE(rank_arr, '$[*]' COLUMNS (val INT PATH '$')) jt;
------
+-- ---
 WITH exploded AS (
     SELECT 
         name,
@@ -445,8 +449,6 @@ select e1.* from emp_salary25 e join emp_salary25 e1 on e.dept_id=e1.dept_id and
 e.emp_id !=e1.emp_id;
 
 
-
-
 -- ====================================================================
 -- 26) Find customers who placed orders in consecutive months.
 -- ====================================================================
@@ -475,7 +477,6 @@ WITH cte AS (
 SELECT DISTINCT customer_name
 FROM cte
 WHERE TIMESTAMPDIFF(MONTH, prev_order, order_date) = 1;
-
 
 
 -- ====================================================================
@@ -680,9 +681,48 @@ ON a.rn = c.rn;
 
 -----
 -- ====================================================================
--- 35)
+-- 35) Find the company only whose revenue is increasing increasing every year.
+--  Note: Suppose a company revenue is increasing for 3 years and a very next year revenue 
+-- is dipped in that case it should not come in output Here in attached data from a company table, The out should be ABC1.
 -- ====================================================================
+DROP TABLE IF EXISTS company_revenue; CREATE TABLE company_revenue (company VARCHAR(100), year INT, revenue INT); INSERT INTO company_revenue VALUES ('ABC1',2000,100),('ABC1',2001,110),('ABC1',2002,120),('ABC2',2000,100),('ABC2',2001,90),('ABC2',2002,120),('ABC3',2000,500),('ABC3',2001,400),('ABC3',2002,600),('ABC3',2003,800);
 
+select * from company_revenue;
+
+with cte as
+(select company ,year,revenue, lag(revenue,1,0) over(partition by company order by year) as pre_rev  from company_revenue)
+
+select  * from cte where revenue > pre_rev;
+
+SELECT company
+FROM (
+    SELECT 
+        company,
+        year,
+        revenue,
+        LAG(revenue) OVER (PARTITION BY company ORDER BY year) AS prev_revenue
+    FROM company_revenue
+) t
+GROUP BY company
+HAVING COUNT(*) = COUNT(CASE WHEN prev_revenue IS NULL OR revenue > prev_revenue THEN 1 END);
+
+-- ---
+
+WITH cte AS (
+    SELECT 
+        company,
+        revenue,
+        LAG(revenue) OVER (PARTITION BY company ORDER BY year) AS prev_rev
+    FROM company_revenue
+)
+
+SELECT DISTINCT company
+FROM cte
+WHERE company NOT IN (
+    SELECT company
+    FROM cte
+    WHERE revenue <= prev_rev
+);
 
 
 
