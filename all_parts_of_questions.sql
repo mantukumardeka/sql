@@ -6,6 +6,17 @@ use  all_parts;
 -- ==================================================================================
 DROP TABLE IF EXISTS workers; CREATE TABLE workers (WORKER_ID INT, FIRST_NAME VARCHAR(50), LAST_NAME VARCHAR(50), SALARY INT, JOINING_DATE DATETIME, DEPARTMENT VARCHAR(50)); INSERT INTO workers VALUES (1,'Monika','Arora',100000,'2014-02-20 09:00:00','HR'),(2,'Niharika','Verma',300000,'2014-06-11 09:00:00','Admin'),(3,'Vishal','Singhal',300000,'2014-02-20 09:00:00','HR'),(4,'Amitabh','Singh',500000,'2014-02-20 09:00:00','Admin'),(5,'Vivek','Bhati',500000,'2014-06-11 09:00:00','Admin');
 select * from workers;
+-- +-----------+------------+-----------+--------+---------------------+------------+
+-- | WORKER_ID | FIRST_NAME | LAST_NAME | SALARY | JOINING_DATE        | DEPARTMENT |
+-- +-----------+------------+-----------+--------+---------------------+------------+
+-- |         1 | Monika     | Arora     | 100000 | 2014-02-20 09:00:00 | HR         |
+-- |         2 | Niharika   | Verma     | 300000 | 2014-06-11 09:00:00 | Admin      |
+-- |         3 | Vishal     | Singhal   | 300000 | 2014-02-20 09:00:00 | HR         |
+-- |         4 | Amitabh    | Singh     | 500000 | 2014-02-20 09:00:00 | Admin      |
+-- |         5 | Vivek      | Bhati     | 500000 | 2014-06-11 09:00:00 | Admin      |
+-- +-----------+------------+-----------+--------+---------------------+------------+
+
+
 -- Notes: Worker_id!=Worker_id
 
 select  a.first_name,a.salary   from workers a join workers b on a.worker_id!=b.worker_id where a.salary=b.salary;
@@ -20,7 +31,7 @@ ON a.SALARY=b.SALARY
 AND a.DEPARTMENT=b.DEPARTMENT 
 AND a.WORKER_ID<b.WORKER_ID;
 
--- using group by ( same salary on same department)
+-- using group by (same salary on same department) (AA)
 
 SELECT DEPARTMENT,SALARY,GROUP_CONCAT(FIRST_NAME) AS employees FROM workers GROUP BY DEPARTMENT,SALARY HAVING COUNT(*)>1;
 
@@ -32,6 +43,20 @@ SELECT DEPARTMENT,SALARY,GROUP_CONCAT(FIRST_NAME) AS employees FROM workers GROU
 
 DROP TABLE IF EXISTS orders; CREATE TABLE orders (order_id INT, status_date DATE, status VARCHAR(50)); INSERT INTO orders VALUES (1,'2024-01-01','Ordered'),(1,'2024-01-02','dispatched'),(1,'2024-01-03','dispatched'),(1,'2024-01-04','Shipped'),(1,'2024-01-05','Shipped'),(1,'2024-01-06','Delivered'),(2,'2024-01-01','Ordered'),(2,'2024-01-02','dispatched'),(2,'2024-01-03','shipped');
 select * from orders;
+-- +----------+-------------+------------+
+-- | order_id | status_date | status     |
+-- +----------+-------------+------------+
+-- |        1 | 2024-01-01  | Ordered    |
+-- |        1 | 2024-01-02  | dispatched |
+-- |        1 | 2024-01-03  | dispatched |
+-- |        1 | 2024-01-04  | Shipped    |
+-- |        1 | 2024-01-05  | Shipped    |
+-- |        1 | 2024-01-06  | Delivered  |
+-- |        2 | 2024-01-01  | Ordered    |
+-- |        2 | 2024-01-02  | dispatched |
+-- |        2 | 2024-01-03  | shipped    |
+-- +----------+-------------+------------+
+
 
 SELECT order_id,status_date,status FROM 
 (SELECT order_id,status_date,status,LAG(status) OVER (PARTITION BY order_id ORDER BY status_date) AS prev_status FROM orders) t 
@@ -44,14 +69,108 @@ WHERE prev_status='Ordered' AND status='dispatched';
 
 
 -- ==================================================================================
--- 3) Get the roundtrip distance from below-
+-- 3) Get the roundtrip distance from below- ALL PATTERNS
 -- ==================================================================================
 
+-- PATTERN A -- SUM DISTANCE
 DROP TABLE IF EXISTS distance; CREATE TABLE distance (from_city VARCHAR(10), to_city VARCHAR(10), dist INT); INSERT INTO distance VALUES ('SEA','SF',300),('CHI','SEA',2000),('SF','SEA',300),('SEA','CHI',2000),('SEA','LND',500),('LND','SEA',500),('LND','CHI',1000),('CHI','NDL',180);
 select * from distance;
 
+-- +-----------+---------+------+
+-- | from_city | to_city | dist |
+-- +-----------+---------+------+
+-- | SEA       | SF      |  300 |
+-- | CHI       | SEA     | 2000 |
+-- | SF        | SEA     |  300 |
+-- | SEA       | CHI     | 2000 |
+-- | SEA       | LND     |  500 |
+-- | LND       | SEA     |  500 |
+-- | LND       | CHI     | 1000 |
+-- | CHI       | NDL     |  180 |
+-- +-----------+---------+------+
+
 
 select  a.from_city,a.to_city, a.dist+b.dist as total from  distance a join distance b  on a.from_city=b.to_city and a.to_city=b.from_city where  a.from_city<a.to_city;
+
+-- PATTERN B - From a Travel history table containing User Id, City and Travel Date, 
+-- identify the source and destination city of each journey?
+
+DROP TABLE IF EXISTS travel_history; CREATE TABLE travel_history (user_id INT, city VARCHAR(50), travel_date DATE); INSERT INTO travel_history (user_id, city, travel_date) VALUES (101,'Delhi','2024-01-01'),(101,'Mumbai','2024-01-05'),(101,'Pune','2024-01-10'),(101,'Bangalore','2024-01-15'),(102,'Chennai','2024-02-01'),(102,'Hyderabad','2024-02-04'),(102,'Kolkata','2024-02-08'),(103,'Jaipur','2024-03-01'),(103,'Ahmedabad','2024-03-05'),(104,'Goa','2024-04-01');
+-- +---------+-----------+-------------+
+-- | user_id | city      | travel_date |
+-- +---------+-----------+-------------+
+-- |     101 | Delhi     | 2024-01-01  |
+-- |     101 | Mumbai    | 2024-01-05  |
+-- |     101 | Pune      | 2024-01-10  |
+-- |     101 | Bangalore | 2024-01-15  |
+-- |     102 | Chennai   | 2024-02-01  |
+-- |     102 | Hyderabad | 2024-02-04  |
+-- |     102 | Kolkata   | 2024-02-08  |
+-- |     103 | Jaipur    | 2024-03-01  |
+-- |     103 | Ahmedabad | 2024-03-05  |
+-- |     104 | Goa       | 2024-04-01  |
+-- +---------+-----------+-------------+
+
+SELECT *
+FROM (
+    SELECT
+        user_id,
+        city AS source_city,
+        LEAD(city) OVER (
+            PARTITION BY user_id
+            ORDER BY travel_date
+        ) AS destination_city,
+        travel_date AS source_travel_date,
+        LEAD(travel_date) OVER (
+            PARTITION BY user_id
+            ORDER BY travel_date
+        ) AS destination_travel_date
+    FROM travel_history
+) t
+WHERE destination_city IS NOT NULL;
+
+
+-- PATTERN C--Write a sql query to find source and destination of each airway
+
+DROP TABLE IF EXISTS flight; CREATE TABLE flight (id INT, airway VARCHAR(50), src VARCHAR(50), dest VARCHAR(50)); INSERT INTO flight (id, airway, src, dest) VALUES (1,'Indigo','India','Bhutan'),(2,'Air Asia','Aus','India'),(3,'Indigo','Bhutan','Nepal'),(4,'spice jet','SriLanka','Bhutan'),(5,'Indigo','Nepal','SriLanka'),(6,'Air Asia','India','Japan'),(7,'spice jet','Bhutan','Nepal');
+
+-- +----+-----------+----------+----------+
+-- | id | airway    | src      | dest     |
+-- +----+-----------+----------+----------+
+-- |  1 | Indigo    | India    | Bhutan   |
+-- |  2 | Air Asia  | Aus      | India    |
+-- |  3 | Indigo    | Bhutan   | Nepal    |
+-- |  4 | spice jet | SriLanka | Bhutan   |
+-- |  5 | Indigo    | Nepal    | SriLanka |
+-- |  6 | Air Asia  | India    | Japan    |
+-- |  7 | spice jet | Bhutan   | Nepal    |
+-- +----+-----------+----------+----------+
+
+WITH source AS (
+    SELECT airway, src
+    FROM flight a
+    WHERE src NOT IN (
+        SELECT dest
+        FROM flight b
+        WHERE a.airway = b.airway
+    )
+),
+destination AS (
+    SELECT airway, dest
+    FROM flight c
+    WHERE dest NOT IN (
+        SELECT src
+        FROM flight d
+        WHERE c.airway = d.airway
+    )
+)
+SELECT
+    s.airway,
+    s.src AS sources,
+    d.dest AS destinations
+FROM source s
+JOIN destination d
+ON s.airway = d.airway;
 
 
 -- ==================================================================================
