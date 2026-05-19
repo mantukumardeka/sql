@@ -10,6 +10,17 @@ show tables;
 DROP TABLE IF EXISTS person_data; CREATE TABLE person_data (persons VARCHAR(5), fruit VARCHAR(20)); INSERT INTO person_data VALUES ('P1','Apple'),('P1','Banana'),('P1','Mango'),('P3','Banana'),('P3','Apple'),('P2','Apple'),('P2','Mango');
 
 select * from person_data;
+-- +---------+--------+
+-- | persons | fruit  |
+-- +---------+--------+
+-- | P1      | Apple  |
+-- | P1      | Banana |
+-- | P1      | Mango  |
+-- | P3      | Banana |
+-- | P3      | Apple  |
+-- | P2      | Apple  |
+-- | P2      | Mango  |
+-- +---------+--------+
 -- WHO LIKES banana and apple--how to get it?
 
 select persons from person_data where fruit in ("Apple","Banana") group by persons having count(distinct fruit)=2;
@@ -136,6 +147,16 @@ INSERT INTO country_data VALUES ('Brazil',10000),('India',15000),('US',20000),('
 
 select * from country_data;
 
+-- +---------+------------+
+-- | country | population |
+-- +---------+------------+
+-- | Brazil  |      10000 |
+-- | India   |      15000 |
+-- | US      |      20000 |
+-- | UK      |      12000 |
+-- | Europe  |      12000 |
+-- +---------+------------+
+
 select country as data from country_data where country="India" 
 union all select max(population) from country_data 
 union all select min(population) from country_data;
@@ -247,6 +268,25 @@ FROM (
 ) s
 WHERE rn <= 2;
 
+WITH cte AS (
+    SELECT
+        YEAR(tdate) AS years,
+        MAX(temperature) AS maxt
+    FROM temperature_data
+    GROUP BY YEAR(tdate)
+),
+cte1 AS (
+    SELECT
+        *,
+        ROW_NUMBER() OVER (
+            ORDER BY maxt DESC
+        ) AS rnk
+    FROM cte
+)
+SELECT *
+FROM cte1
+WHERE rnk <= 2;
+
 -- #########################################################################################################
 -- SCENARION  8: 
 -- Find names starting with vowel
@@ -297,7 +337,19 @@ INSERT INTO market VALUES (101,'D-mart',500,'chennai'),(102,'super store',300,'c
 
 select * from market;
 
+-- +-----------+-------------+-----+----------+
+-- | market_id | market_name | amt | location |
+-- +-----------+-------------+-----+----------+
+-- |       101 | D-mart      | 500 | chennai  |
+-- |       102 | super store | 300 | chennai  |
+-- |       103 | coludera    | 300 | chennai  |
+-- |       105 | super store | 200 | Pondy    |
+-- |       104 | walmart     | 100 | Pondy    |
+-- +-----------+-------------+-----+----------+
+
 -- You need to find the top 2 performing markets in each location based on amt
+
+-- dense rank()
 
 with tt as (
 select * , row_number() over(partition by location order by amt desc ) as rnk from market)
@@ -307,7 +359,7 @@ with tt as (
 select * , dense_rank() over(partition by location order by amt desc ) as rnk from market)
 select market_id, market_name, amt, location from tt where rnk<=2;
 
--- - u sing row_number()
+-- - u sing row_number() -- it will miss one value, sinnce its for unique rank.
 
 SELECT market_id, market_name, amt, location
 FROM (
@@ -351,6 +403,17 @@ INSERT INTO emp_data VALUES ('A',10),('B',10),('C',9),('D',8),('F',8),('G',7),('
 
 SELECT * FROM emp_data;
 
+-- +----------+--------+
+-- | employee | salary |
+-- +----------+--------+
+-- | A        |     10 |
+-- | B        |     10 |
+-- | C        |      9 |
+-- | D        |      8 |
+-- | F        |      8 |
+-- | G        |      7 |
+-- | H        |      6 |
+
 select * from emp_data where salary in(
 select salary from emp_data group by salary having count(employee)=1);
 
@@ -380,8 +443,40 @@ INSERT INTO transactions VALUES ('C1','T1',100,'Prod 1','P1','2022-12-02'),('C1'
 
 
 SELECT * FROM Product;
+
+-- +---------+-----------+-----------+------------+
+-- | PROD_ID | PROD_NAME | PROD_DESC | PROD_PRICE |
+-- +---------+-----------+-----------+------------+
+-- | P1      | Prod 1    | Prod 1    |         10 |
+-- | P2      | Prod 2    | Prod 2    |         20 |
+-- | P3      | Prod 3    | Prod 3    |         30 |
+-- | P4      | Prod 4    | Prod 4    |         40 |
+-- | P5      | Prod 5    | Prod 5    |         50 |
+-- +---------+-----------+-----------+------------+
 select * from Customer;
+
+-- +---------+--------+--------+-------------------+
+-- | CUST_ID | NAME   | REGION | ADDRESS           |
+-- +---------+--------+--------+-------------------+
+-- | C1      | Cust 1 | IND    | Mumbai            |
+-- | C2      | Cust 2 | US     | California        |
+-- | C3      | Cust 3 | UK     | Buckingham Palace |
+-- | C4      | Cust 4 | IND    | Chennai           |
+-- | C5      | Cust 5 | US     | Alaska            |
+-- +---------+--------+--------+-------------------+
+
 select * from transactions;
+
+-- +---------+--------+--------+-----------+---------+---------------+
+-- | CUST_ID | TXN_ID | TXNAMT | PROD_NAME | PROD_ID | PURCHASE_DATE |
+-- +---------+--------+--------+-----------+---------+---------------+
+-- | C1      | T1     |    100 | Prod 1    | P1      | 2022-12-02    |
+-- | C1      | T2     |    500 | Prod 1    | P1      | 2022-12-02    |
+-- | C2      | T3     |    100 | Prod 2    | P2      | 2022-12-05    |
+-- | C3      | T4     |    100 | Prod 3    | P3      | 2022-12-08    |
+-- | C4      | T5     |    100 | Prod 4    | P4      | 2022-12-09    |
+-- | C1      | T6     |    600 | Prod 1    | P1      | 2022-12-10    |
+-- +---------+--------+--------+-----------+---------+---------------+
 
 
  -- 1 ) Product which has been purchased by large number of consumers
@@ -581,6 +676,41 @@ FROM
     ) a
 ) p;
 
+-- using CTE-
+
+WITH cte AS (
+    SELECT
+        name,
+        subject,
+        years,
+        marks,
+        LAG(marks) OVER (
+            PARTITION BY subject
+            ORDER BY years
+        ) AS prev_marks
+    FROM myrs
+),
+
+cte2 AS (
+    SELECT
+        *,
+        (marks - prev_marks) AS diff
+    FROM cte
+)
+
+SELECT
+    name,
+    subject,
+    years,
+    marks,
+    CASE
+        WHEN diff IS NULL THEN NULL
+        WHEN diff < 0 THEN 'Less'
+        WHEN diff > 0 THEN 'More'
+        ELSE 'Same'
+    END AS Result
+FROM cte2;
+
 
 -- ################################################################################################
 
@@ -602,8 +732,30 @@ DROP TABLE IF EXISTS Maintenance; CREATE TABLE Maintenance (id INT, salary INT);
 SELECT e.name,e.id,COALESCE(h.salary,0)+COALESCE(m.salary,0) AS salary FROM Emp e LEFT JOIN Hardware h ON e.id=h.id LEFT JOIN Maintenance m ON e.id=m.id;
 
 select * from emp;
+
+-- +------+-----+
+-- | name |  id |
+-- +------+-----+
+-- | a    | 100 |
+-- | b    | 200 |
+-- | c    | 300 |
+-- +------+-----+
 select * from Hardware;
+
+-- +-----+--------+
+-- |  id | salary |
+-- +-----+--------+
+-- | 100 |   1000 |
+-- | 300 |    500 |
+-- +-----+--------+
 select * from Maintenance;
+
+-- +-----+--------+
+-- |  id | salary |
+-- +-----+--------+
+-- | 100 |    500 |
+-- | 200 |   1000 |
+-- +-----+--------+
 
 select e.name, e.id ,sum(s.salary) as sal from emp e join
 (select * from Hardware
@@ -649,10 +801,36 @@ FROM customers14;
 
 -- ################################################################################################
 
+use scenario;
 drop table if exists orders17;
 CREATE TABLE orders17(order_id INT, cust_name VARCHAR(30), product VARCHAR(30), amount INT, order_date DATE); 
 INSERT INTO orders17 VALUES (1,'Rahul','Laptop',50000,'2024-01-10'),(2,'Amit','Mobile',20000,'2024-01-11'),(3,'Rahul','Keyboard',2000,'2024-01-12'),(4,'Sneha','Laptop',55000,'2024-01-13'),(5,'Amit','Mouse',800,'2024-01-14'),(6,'Riya','Tablet',15000,'2024-01-15'),(7,'Rahul','Monitor',12000,'2024-01-16'),(8,'Karan','Mobile',18000,'2024-01-17'),(9,'Sneha','Headphone',3000,'2024-01-18'),(10,'Riya','Laptop',52000,'2024-01-19'),(11,'Amit','Keyboard',2500,'2024-01-20'),(12,'Karan','Tablet',14000,'2024-01-21'),(13,'Rahul','Mouse',900,'2024-01-22'),(14,'Sneha','Monitor',11000,'2024-01-23'),(15,'Amit','Laptop',48000,'2024-01-24'),(16,'Riya','Headphone',3500,'2024-01-25'),(17,'Rahul','Tablet',16000,'2024-01-26'),(18,'Karan','Keyboard',2200,'2024-01-27'),(19,'Sneha','Mouse',850,'2024-01-28'),(20,'Amit','Monitor',12500,'2024-01-29');
 select * from orders17;
+
+-- +----------+-----------+-----------+--------+------------+
+-- | order_id | cust_name | product   | amount | order_date |
+-- +----------+-----------+-----------+--------+------------+
+-- |        1 | Rahul     | Laptop    |  50000 | 2024-01-10 |
+-- |        2 | Amit      | Mobile    |  20000 | 2024-01-11 |
+-- |        3 | Rahul     | Keyboard  |   2000 | 2024-01-12 |
+-- |        4 | Sneha     | Laptop    |  55000 | 2024-01-13 |
+-- |        5 | Amit      | Mouse     |    800 | 2024-01-14 |
+-- |        6 | Riya      | Tablet    |  15000 | 2024-01-15 |
+-- |        7 | Rahul     | Monitor   |  12000 | 2024-01-16 |
+-- |        8 | Karan     | Mobile    |  18000 | 2024-01-17 |
+-- |        9 | Sneha     | Headphone |   3000 | 2024-01-18 |
+-- |       10 | Riya      | Laptop    |  52000 | 2024-01-19 |
+-- |       11 | Amit      | Keyboard  |   2500 | 2024-01-20 |
+-- |       12 | Karan     | Tablet    |  14000 | 2024-01-21 |
+-- |       13 | Rahul     | Mouse     |    900 | 2024-01-22 |
+-- |       14 | Sneha     | Monitor   |  11000 | 2024-01-23 |
+-- |       15 | Amit      | Laptop    |  48000 | 2024-01-24 |
+-- |       16 | Riya      | Headphone |   3500 | 2024-01-25 |
+-- |       17 | Rahul     | Tablet    |  16000 | 2024-01-26 |
+-- |       18 | Karan     | Keyboard  |   2200 | 2024-01-27 |
+-- |       19 | Sneha     | Mouse     |    850 | 2024-01-28 |
+-- |       20 | Amit      | Monitor   |  12500 | 2024-01-29 |
+-- +----------+-----------+-----------+--------+------------+
 
 
 --  Customer who spent more than average?
@@ -660,6 +838,29 @@ select * from orders17;
 
 with totab as (select cust_name,sum(amount) as total from orders17 group by cust_name) 
 select * from totab where total > (select avg(amount) from orders17);
+
+--  (AAAA)
+
+WITH cte AS (
+    SELECT
+        cust_name,
+        SUM(amount) AS total_spent
+    FROM orders17
+    GROUP BY cust_name
+),
+
+avg_cte AS (
+    SELECT
+        AVG(total_spent) AS avg_spent
+    FROM cte
+)
+
+SELECT
+    c.cust_name,
+    c.total_spent
+FROM cte c
+JOIN avg_cte a
+ON c.total_spent > a.avg_spent;
 
 
 
@@ -826,7 +1027,7 @@ select store, length(entries) -length(replace(entries, ',', '')) + 1 as entrycou
 
 -- ################################################################################################
 
--- SCENARION 22: Find the name who has visited frequently 
+-- SCENARION 22: Find the name who has visited frequently .
 
 
 -- ################################################################################################
