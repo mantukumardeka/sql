@@ -5,6 +5,23 @@ use ankit;
 -- 1) top 2 employee bases on salary desc;
 -- ====================================================================
 
+-- +--------+----------+---------+--------+------------+---------+
+-- | emp_id | emp_name | dept_id | salary | manager_id | emp_age |
+-- +--------+----------+---------+--------+------------+---------+
+-- |      1 | Ankit    |     100 |  12000 |          4 |      39 |
+-- |      2 | Mohit    |     100 |  15000 |          5 |      48 |
+-- |      3 | Vikas    |     100 |  10000 |          4 |      37 |
+-- |      4 | Rohit    |     100 |   5000 |     <null> |      16 |
+-- |      5 | Mudit    |     200 |  12000 |     <null> |      55 |
+-- |      6 | Agam     |     200 |  12000 |     <null> |      14 |
+-- |      7 | Sanjay   |     200 |   9000 |     <null> |      13 |
+-- |      8 | Ashish   |     200 |   5000 |     <null> |      12 |
+-- |      9 | Mukesh   |     300 |   6000 |     <null> |      51 |
+-- |     10 | Rakesh   |     500 |   7000 |     <null> |      50 |
+-- |     11 | dummy    |     400 |   4000 |          4 |      99 |
+-- +--------+----------+---------+--------+------------+---------+
+
+
 select * from employee order by salary desc limit 2;
 
 with cte as (select *, row_number() over(partition by dept_id order by salary desc) as rnk from employee) select * from cte where rnk<=2;
@@ -21,12 +38,26 @@ select product_id, sales from cte order by sales desc;
 -- ====================================================================
 -- 3) top 5 product_id, category by sales   (A)
 -- ====================================================================
-with tt as 
-(select  category ,product_id, sum(list_price) as sales from orders  group by product_id,category)
+WITH tt AS (
+    SELECT
+        category,
+        product_id,
+        SUM(list_price * quantity) AS sales
+    FROM orders
+    GROUP BY category, product_id
+)
 
-select * from (
-select *, row_number() over(partition by category order by sales desc ) as rnk from tt) a where rnk=1;
-
+SELECT *
+FROM (
+    SELECT
+        *,
+        DENSE_RANK() OVER(
+            PARTITION BY category
+            ORDER BY sales DESC
+        ) AS rnk
+    FROM tt
+) a
+WHERE rnk <= 5;
 
 -- ====================================================================
 --  4) find top 5 highest selling products in each region
@@ -38,9 +69,9 @@ select * , row_number() over(partition by region order by sales desc) as rn from
 
 select * from cte where rn<=5;
 
--- ====================================================================
--- 5) find month over month growth comparison for 2022 and 2023 sales eg : jan 2022 vs jan 2023
--- ====================================================================
+-- ============================================================================================
+-- 5) Find month over month growth comparison for 2022 and 2023 sales eg : jan 2022 vs jan 2023
+-- ============================================================================================
 
 with tt as (select year(order_date) as order_year, month(order_date) as order_month , 
 sum(list_price) as sales from orders group by  year(order_date) ,month(order_date))
@@ -176,13 +207,28 @@ ORDER BY year_order, month_order_date;
 
 
 -- ====================================================================
--- 13)  get order_id, new customer and repeat customer count  (A)
+-- 13)  get order_id, new customer and repeat customer count  (AAA)
 -- ====================================================================
 
 drop table if exists customer_orders; CREATE TABLE customer_orders (order_id INT PRIMARY KEY, customer_id INT, order_date DATE, order_amount INT); INSERT INTO customer_orders VALUES (1,100,'2022-01-01',2000),(2,200,'2022-01-01',2500),(3,300,'2022-01-01',2100),(4,100,'2022-01-02',2000),(5,400,'2022-01-02',2200),(6,500,'2022-01-02',2700),(7,100,'2022-01-03',3000),(8,400,'2022-01-03',1000),(9,600,'2022-01-03',3000);
 
 -- min, cte, join inclusing case, again cte and count
 select * from customer_orders;
+
+
+-- +----------+-------------+------------+--------------+
+-- | order_id | customer_id | order_date | order_amount |
+-- +----------+-------------+------------+--------------+
+-- |        1 |         100 | 2022-01-01 |         2000 |
+-- |        2 |         200 | 2022-01-01 |         2500 |
+-- |        3 |         300 | 2022-01-01 |         2100 |
+-- |        4 |         100 | 2022-01-02 |         2000 |
+-- |        5 |         400 | 2022-01-02 |         2200 |
+-- |        6 |         500 | 2022-01-02 |         2700 |
+-- |        7 |         100 | 2022-01-03 |         3000 |
+-- |        8 |         400 | 2022-01-03 |         1000 |
+-- |        9 |         600 | 2022-01-03 |         3000 |
+-- +----------+-------------+------------+--------------+
 
 with first_visit as (select customer_id ,min(order_date) as first_visit_date 
 from customer_orders group by customer_id),
@@ -207,6 +253,16 @@ CREATE TABLE icc_world_cup (Team_1 VARCHAR(20), Team_2 VARCHAR(20), Winner VARCH
 -- case winner, union , and then count, sum group by
 SELECT * FROM icc_world_cup;
 
+-- +--------+--------+--------+
+-- | Team_1 | Team_2 | Winner |
+-- +--------+--------+--------+
+-- | India  | SL     | India  |
+-- | SL     | Aus    | Aus    |
+-- | SA     | Eng    | Eng    |
+-- | Eng    | NZ     | NZ     |
+-- | Aus    | India  | India  |
+-- +--------+--------+--------+
+
 with tt as (
 select Team_1 as team ,case when Team_1="Winner" then 1 else 0 end as Winner_count  from icc_world_cup union all
 
@@ -223,6 +279,17 @@ drop table entries;
 CREATE TABLE entries (name VARCHAR(20), address VARCHAR(20), email VARCHAR(20), floor INT, resources VARCHAR(10)); INSERT INTO entries VALUES ('A','Bangalore','A@gmail.com',1,'CPU'),('A','Bangalore','A1@gmail.com',1,'CPU'),('A','Bangalore','A2@gmail.com',2,'DESKTOP'),('B','Bangalore','B@gmail.com',2,'DESKTOP'),('B','Bangalore','B1@gmail.com',2,'DESKTOP'),('B','Bangalore','B2@gmail.com',1,'MONITOR');
 
 select * from entries;
+
+-- +------+-----------+--------------+-------+-----------+
+-- | name | address   | email        | floor | resources |
+-- +------+-----------+--------------+-------+-----------+
+-- | A    | Bangalore | A@gmail.com  |     1 | CPU       |
+-- | A    | Bangalore | A1@gmail.com |     1 | CPU       |
+-- | A    | Bangalore | A2@gmail.com |     2 | DESKTOP   |
+-- | B    | Bangalore | B@gmail.com  |     2 | DESKTOP   |
+-- | B    | Bangalore | B1@gmail.com |     2 | DESKTOP   |
+-- | B    | Bangalore | B2@gmail.com |     1 | MONITOR   |
+-- +------+-----------+--------------+-------+-----------+
 
 WITH floor_visits AS (
     SELECT 
@@ -288,6 +355,25 @@ CREATE TABLE events (ID INT, event VARCHAR(255), YEAR INT, GOLD VARCHAR(255), SI
 
 select * from events;
 
+-- +----+-------+------+------------------+--------------+-------------+
+-- | ID | event | YEAR | GOLD             | SILVER       | BRONZE      |
+-- +----+-------+------+------------------+--------------+-------------+
+-- |  1 | 100m  | 2016 | Amthhew Mcgarray | donald       | barbara     |
+-- |  2 | 200m  | 2016 | Nichole          | Alvaro Eaton | janet Smith |
+-- |  3 | 500m  | 2016 | Charles          | Nichole      | Susana      |
+-- |  4 | 100m  | 2016 | Ronald           | maria        | paula       |
+-- |  5 | 200m  | 2016 | Alfred           | carol        | Steven      |
+-- |  6 | 500m  | 2016 | Nichole          | Alfred       | Brandon     |
+-- |  7 | 100m  | 2016 | Charles          | Dennis       | Susana      |
+-- |  8 | 200m  | 2016 | Thomas           | Dawn         | catherine   |
+-- |  9 | 500m  | 2016 | Thomas           | Dennis       | paula       |
+-- | 10 | 100m  | 2016 | Charles          | Dennis       | Susana      |
+-- | 11 | 200m  | 2016 | jessica          | Donald       | Stefeney    |
+-- | 12 | 500m  | 2016 | Thomas           | Steven       | Catherine   |
+-- +----+-------+------+------------------+--------------+-------------+
+
+
+
 select gold as player_name, count(1) as number_of_medals from events 
 where gold not in ( select silver from events union all select bronze  from events   )
 group by gold;
@@ -314,7 +400,28 @@ drop table tickets;drop table holidays;
 CREATE TABLE tickets (ticket_id VARCHAR(10), create_date DATE, resolved_date DATE);  INSERT INTO tickets VALUES (1,'2022-08-01','2022-08-03'),(2,'2022-08-01','2022-08-12'),(3,'2022-08-01','2022-08-16'); CREATE TABLE holidays (holiday_date DATE, reason VARCHAR(100));  INSERT INTO holidays VALUES ('2022-08-11','Rakhi'),('2022-08-15','Independence day');
 
 select * from tickets;
+
+-- +-----------+-------------+---------------+
+-- | ticket_id | create_date | resolved_date |
+-- +-----------+-------------+---------------+
+-- | 1         | 2022-08-01  | 2022-08-03    |
+-- | 2         | 2022-08-01  | 2022-08-12    |
+-- | 3         | 2022-08-01  | 2022-08-16    |
+-- | 1         | 2022-08-01  | 2022-08-03    |
+-- | 2         | 2022-08-01  | 2022-08-12    |
+-- | 3         | 2022-08-01  | 2022-08-16    |
+-- +-----------+-------------+---------------+
+
 select * from holidays;
+
+-- +--------------+------------------+
+-- | holiday_date | reason           |
+-- +--------------+------------------+
+-- | 2022-08-11   | Rakhi            |
+-- | 2022-08-15   | Independence day |
+-- | 2022-08-11   | Rakhi            |
+-- | 2022-08-15   | Independence day |
+-- +--------------+------------------+
 
 
 SELECT 
@@ -346,6 +453,22 @@ GROUP BY t.ticket_id, t.create_date, t.resolved_date;
 drop table hospital;CREATE TABLE hospital (emp_id INT, action VARCHAR(10), time DATETIME); INSERT INTO hospital VALUES (1,'in','2019-12-22 09:00:00'),(1,'out','2019-12-22 09:15:00'),(2,'in','2019-12-22 09:00:00'),(2,'out','2019-12-22 09:15:00'),(2,'in','2019-12-22 09:30:00'),(3,'out','2019-12-22 09:00:00'),(3,'in','2019-12-22 09:15:00'),(3,'out','2019-12-22 09:30:00'),(3,'in','2019-12-22 09:45:00'),(4,'in','2019-12-22 09:45:00'),(5,'out','2019-12-22 09:40:00');
 select * from hospital;
 
+-- +--------+--------+---------------------+
+-- | emp_id | action | time                |
+-- +--------+--------+---------------------+
+-- |      1 | in     | 2019-12-22 09:00:00 |
+-- |      1 | out    | 2019-12-22 09:15:00 |
+-- |      2 | in     | 2019-12-22 09:00:00 |
+-- |      2 | out    | 2019-12-22 09:15:00 |
+-- |      2 | in     | 2019-12-22 09:30:00 |
+-- |      3 | out    | 2019-12-22 09:00:00 |
+-- |      3 | in     | 2019-12-22 09:15:00 |
+-- |      3 | out    | 2019-12-22 09:30:00 |
+-- |      3 | in     | 2019-12-22 09:45:00 |
+-- |      4 | in     | 2019-12-22 09:45:00 |
+-- |      5 | out    | 2019-12-22 09:40:00 |
+-- +--------+--------+---------------------+
+
 with cte as (
 select emp_id,
 max(case when action='in' then time end) as in_time,
@@ -361,6 +484,17 @@ select  emp_id, in_time, out_time from cte where in_time > out_time or out_time 
 drop table airbnb_searches;
 CREATE TABLE airbnb_searches (user_id INT, date_searched DATE, filter_room_types VARCHAR(200)); DELETE FROM airbnb_searches; INSERT INTO airbnb_searches VALUES (1,'2022-01-01','entire home,private room'),(2,'2022-01-02','entire home,shared room'),(3,'2022-01-02','private room,shared room'),(4,'2022-01-03','private room');
 select * from airbnb_searches;
+
+-- +---------+---------------+--------------------------+
+-- | user_id | date_searched | filter_room_types        |
+-- +---------+---------------+--------------------------+
+-- |       1 | 2022-01-01    | entire home,private room |
+-- |       2 | 2022-01-02    | entire home,shared room  |
+-- |       3 | 2022-01-02    | private room,shared room |
+-- |       4 | 2022-01-03    | private room             |
+-- +---------+---------------+--------------------------+
+
+
 
 SELECT value, COUNT(*) AS cnt
 FROM airbnb_searches,
@@ -439,6 +573,18 @@ LIMIT 1;
 drop table emp_salary25;CREATE TABLE emp_salary25 (emp_id INT NOT NULL, name VARCHAR(20) NOT NULL, salary VARCHAR(30), dept_id INT); INSERT INTO emp_salary25 (emp_id, name, salary, dept_id) VALUES (101,'sohan','3000',11),(102,'rohan','4000',12),(103,'mohan','5000',13),(104,'cat','3000',11),(105,'suresh','4000',12),(109,'mahesh','7000',12),(108,'kamal','8000',11);
 select * from emp_salary25;
 
+-- +--------+--------+--------+---------+
+-- | emp_id | name   | salary | dept_id |
+-- +--------+--------+--------+---------+
+-- |    101 | sohan  | 3000   |      11 |
+-- |    102 | rohan  | 4000   |      12 |
+-- |    103 | mohan  | 5000   |      13 |
+-- |    104 | cat    | 3000   |      11 |
+-- |    105 | suresh | 4000   |      12 |
+-- |    109 | mahesh | 7000   |      12 |
+-- |    108 | kamal  | 8000   |      11 |
+-- +--------+--------+--------+---------+
+
 select dept_id,salary,count(1) from emp_salary25 group by dept_id,salary having count(1)>1;
 -------
 select * from emp_salary25 e where (e.dept_id,e.salary) in (
@@ -455,6 +601,29 @@ e.emp_id !=e1.emp_id;
 
 drop table customers26;create table customers26 as  select * from wd.customers;
 drop table orders26;create table orders26 as select * from wd.orders;
+
+-- +-------------+---------------+
+-- | customer_id | customer_name |
+-- +-------------+---------------+
+-- |         101 | Alice         |
+-- |         102 | Bob           |
+-- |         103 | Carol         |
+-- |         104 | Dave          |
+-- +-------------+---------------+
+
+-- +----------+-------------+------------+--------------+
+-- | order_id | customer_id | order_date | order_amount |
+-- +----------+-------------+------------+--------------+
+-- |        1 |         101 | 2026-01-15 |      1200.00 |
+-- |        2 |         101 | 2026-02-10 |      1800.00 |
+-- |        3 |         101 | 2026-04-05 |       900.00 |
+-- |        4 |         102 | 2026-01-20 |      1500.00 |
+-- |        5 |         102 | 2026-03-12 |      2000.00 |
+-- |        6 |         103 | 2026-02-14 |      1100.00 |
+-- |        7 |         103 | 2026-03-18 |      1700.00 |
+-- |        8 |         103 | 2026-04-25 |      1300.00 |
+-- |        9 |         104 | 2026-05-08 |      1000.00 |
+-- +----------+-------------+------------+--------------+
 
 with cte as (select  customers26.customer_name,orders26.*,   lag(order_date) over(partition by customer_name order by order_date)  as prev_order from orders26 join customers26 on customers26.customer_id=orders26.customer_id)
 
@@ -479,14 +648,25 @@ FROM cte
 WHERE TIMESTAMPDIFF(MONTH, prev_order, order_date) = 1;
 
 
--- ====================================================================
--- 27) For every customer that bought Photoshop, return a list of the customers, and the total spent on all the products except for Photoshop products.
+-- ====================================================================================================================================
+-- 27) For every customer that bought Photoshop, return a list of the customers, 
+-- and the total spent on all the products except for Photoshop products.
 -- Sort your answer by customer ids in ascending order.
--- ====================================================================
+-- =======================================================================================================================================
 
 drop table adobe_transactions;CREATE TABLE adobe_transactions (customer_id INT, product VARCHAR(50), revenue INT); INSERT INTO adobe_transactions VALUES (123,'Photoshop',50),(123,'Premier Pro',100),(123,'After Effects',50),(234,'Illustrator',200),(234,'Premier Pro',100);
 
 select * from adobe_transactions;
+
+-- +-------------+---------------+---------+
+-- | customer_id | product       | revenue |
+-- +-------------+---------------+---------+
+-- |         123 | Photoshop     |      50 |
+-- |         123 | Premier Pro   |     100 |
+-- |         123 | After Effects |      50 |
+-- |         234 | Illustrator   |     200 |
+-- |         234 | Premier Pro   |     100 |
+-- +-------------+---------------+---------+
 
 
 select customer_id, sum(revenue) as total from adobe_transactions where customer_id in
@@ -504,6 +684,18 @@ group by customer_id;
 drop table purchases;CREATE TABLE purchases (user_id INT, product_id INT, quantity INT, purchase_date DATETIME); INSERT INTO purchases VALUES (333,1122,8,'2022-06-02 14:56:03'),(333,1122,10,'2022-06-02 02:00:00'),(333,1122,9,'2022-06-02 01:00:00'),(536,1435,10,'2022-03-02 08:40:00'),(536,3223,6,'2022-01-11 12:33:44'),(536,3223,5,'2022-03-02 09:33:28'),(827,3585,35,'2022-02-20 14:05:26');
 
 select * from purchases;
+
+-- +---------+------------+----------+---------------------+
+-- | user_id | product_id | quantity | purchase_date       |
+-- +---------+------------+----------+---------------------+
+-- |     333 |       1122 |        8 | 2022-06-02 14:56:03 |
+-- |     333 |       1122 |       10 | 2022-06-02 02:00:00 |
+-- |     333 |       1122 |        9 | 2022-06-02 01:00:00 |
+-- |     536 |       1435 |       10 | 2022-03-02 08:40:00 |
+-- |     536 |       3223 |        6 | 2022-01-11 12:33:44 |
+-- |     536 |       3223 |        5 | 2022-03-02 09:33:28 |
+-- |     827 |       3585 |       35 | 2022-02-20 14:05:26 |
+-- +---------+------------+----------+---------------------+
 
 SELECT 
     user_id,
@@ -659,8 +851,38 @@ LEFT JOIN qualified_team qt
 DROP TABLE IF EXISTS family; CREATE TABLE family (person VARCHAR(5), type VARCHAR(10), age INT); INSERT INTO family VALUES ('A1','Adult',54),('A2','Adult',53),('A3','Adult',52),('A4','Adult',58),('A5','Adult',54),('C1','Child',20),('C2','Child',19),('C3','Child',22),('C4','Child',15);
 DROP TABLE IF EXISTS family1; CREATE TABLE family1 (person VARCHAR(5), type VARCHAR(10)); INSERT INTO family1 VALUES ('A1','Adult'),('A2','Adult'),('A3','Adult'),('A4','Adult'),('A5','Adult'),('C1','Child'),('C2','Child'),('C3','Child'),('C4','Child');
 select * from family;
+
+-- +--------+-------+-----+
+-- | person | type  | age |
+-- +--------+-------+-----+
+-- | A1     | Adult |  54 |
+-- | A2     | Adult |  53 |
+-- | A3     | Adult |  52 |
+-- | A4     | Adult |  58 |
+-- | A5     | Adult |  54 |
+-- | C1     | Child |  20 |
+-- | C2     | Child |  19 |
+-- | C3     | Child |  22 |
+-- | C4     | Child |  15 |
+-- +--------+-------+-----+
+
+
 select * from family1;
-------
+
+-- +--------+-------+
+-- | person | type  |
+-- +--------+-------+
+-- | A1     | Adult |
+-- | A2     | Adult |
+-- | A3     | Adult |
+-- | A4     | Adult |
+-- | A5     | Adult |
+-- | C1     | Child |
+-- | C2     | Child |
+-- | C3     | Child |
+-- | C4     | Child |
+-- +--------+-------+
+-------
 
 SELECT 
     a.person AS Adult,
@@ -688,6 +910,21 @@ ON a.rn = c.rn;
 DROP TABLE IF EXISTS company_revenue; CREATE TABLE company_revenue (company VARCHAR(100), year INT, revenue INT); INSERT INTO company_revenue VALUES ('ABC1',2000,100),('ABC1',2001,110),('ABC1',2002,120),('ABC2',2000,100),('ABC2',2001,90),('ABC2',2002,120),('ABC3',2000,500),('ABC3',2001,400),('ABC3',2002,600),('ABC3',2003,800);
 
 select * from company_revenue;
+
+-- +---------+------+---------+
+-- | company | year | revenue |
+-- +---------+------+---------+
+-- | ABC1    | 2000 |     100 |
+-- | ABC1    | 2001 |     110 |
+-- | ABC1    | 2002 |     120 |
+-- | ABC2    | 2000 |     100 |
+-- | ABC2    | 2001 |      90 |
+-- | ABC2    | 2002 |     120 |
+-- | ABC3    | 2000 |     500 |
+-- | ABC3    | 2001 |     400 |
+-- | ABC3    | 2002 |     600 |
+-- | ABC3    | 2003 |     800 |
+-- +---------+------+---------+
 
 with cte as
 (select company ,year,revenue, lag(revenue,1,0) over(partition by company order by year) as pre_rev  from company_revenue)
