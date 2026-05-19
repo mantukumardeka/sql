@@ -432,7 +432,6 @@ CREATE TABLE Product (PROD_ID VARCHAR(10), PROD_NAME VARCHAR(50), PROD_DESC VARC
 INSERT INTO Product VALUES ('P1','Prod 1','Prod 1',10),('P2','Prod 2','Prod 2',20),('P3','Prod 3','Prod 3',30),('P4','Prod 4','Prod 4',40),('P5','Prod 5','Prod 5',50);
 
 
-
 DROP TABLE IF EXISTS Customer;
 CREATE TABLE Customer (CUST_ID VARCHAR(10), NAME VARCHAR(50), REGION VARCHAR(20), ADDRESS VARCHAR(100));
 INSERT INTO Customer VALUES ('C1','Cust 1','IND','Mumbai'),('C2','Cust 2','US','California'),('C3','Cust 3','UK','Buckingham Palace'),('C4','Cust 4','IND','Chennai'),('C5','Cust 5','US','Alaska');
@@ -606,7 +605,6 @@ select * from movies;
 
 
 -- 1. Find a actor and director who has worked together more than once
-
 
 select a.name, d.dir_name , count(*) as totals  from actors a join Director_details d on a.movie_name=d.movie_name group by a.name, d.dir_name having totals>1;
 
@@ -1061,28 +1059,12 @@ INSERT INTO places (name, travel_location, age) VALUES
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- ################################################################################################
 
 -- SCENARION 24:
 
 
--- ################################################################################################
-
-
+-- ###############
 
 
 
