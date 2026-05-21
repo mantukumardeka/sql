@@ -1051,10 +1051,40 @@ INSERT INTO places (name, travel_location, age) VALUES
 
 -- ################################################################################################
 
--- SCENARION 23:
+-- SCENARION 23: 3 consecutive login -- Using Row_number() and date_sub
 
 
 -- ################################################################################################
+use scenario;
+
+DROP TABLE IF EXISTS employee_logins;
+
+CREATE TABLE employee_logins (
+    empid INT,
+    name VARCHAR(100),
+    logindate DATE
+);
+
+INSERT INTO employee_logins VALUES
+(1,'Mantu','2025-01-01'),
+(1,'Mantu','2025-01-02'),
+(1,'Mantu','2025-01-03'),
+(1,'Mantu','2025-01-05'),
+(2,'Ram','2025-01-01'),
+(2,'Ram','2025-01-03'),
+(2,'Ram','2025-01-04'),
+(2,'Ram','2025-01-05'),
+(3,'John','2025-02-01'),
+(3,'John','2025-02-02'),
+(3,'John','2025-02-03'),
+(3,'John','2025-02-04');
+
+
+
+
+
+
+
 
 
 
