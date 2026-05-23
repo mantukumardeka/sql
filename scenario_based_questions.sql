@@ -1079,10 +1079,37 @@ INSERT INTO employee_logins VALUES
 (3,'John','2025-02-03'),
 (3,'John','2025-02-04');
 
+--  # consective login- Using Row_number() and Date_sub
 
 
+select * from employee_logins;
+
+WITH cte AS (
+    SELECT
+        *,
+        ROW_NUMBER() OVER(
+            PARTITION BY empid
+            ORDER BY logindate
+        ) AS rn
+    FROM employee_logins
+),
+
+grp_cte AS (
+    SELECT
+        *,
+        DATE_SUB(logindate, INTERVAL rn DAY) AS grp
+    FROM cte
+)
+
+SELECT
+    empid,
+    name,grp
+FROM grp_cte
+GROUP BY empid, name, grp
+HAVING COUNT(*) >= 3;
 
 
+-- ===Using lag=========
 
 
 
