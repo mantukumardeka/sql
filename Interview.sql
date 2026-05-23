@@ -302,42 +302,256 @@ FROM emp_num40;
 
 
 -- ===========================================================================================
---
+-- LTM- get thame emp which dep and salary is same
 -- ==========================================================================================
+DROP TABLE IF EXISTS dep_sal; CREATE TABLE dep_sal ( name VARCHAR(50), dept VARCHAR(50), sal INT ); INSERT INTO dep_sal VALUES ('Mike','HR',10000), ('Brand','Dev',12000), ('Peter','Dev',15000), ('Brett','HR',10000), ('Rosen','Dev',12000), ('Tyler','HR',5000);
+
+-- +-------+------+-------+
+-- | name  | dept |   sal |
+-- +-------+------+-------+
+-- | Mike  | HR   | 10000 |
+-- | Brand | Dev  | 12000 |
+-- | Peter | Dev  | 15000 |
+-- | Brett | HR   | 10000 |
+-- | Rosen | Dev  | 12000 |
+-- | Tyler | HR   |  5000 |
+-- +-------+------+-------+
+
+SELECT *
+FROM dep_sal
+WHERE (dept, sal) IN (
+    SELECT dept, sal
+    FROM dep_sal
+    GROUP BY dept, sal
+    HAVING COUNT(*) > 1
+);
+
+-- Department Wise Salary Difference
+
+SELECT 
+    dept,
+    MAX(sal) - MIN(sal) AS salary_gap
+FROM dep_sal
+GROUP BY dept;
+
+-- Highest Paid Employee Per Department
 
 
+WITH cte AS (
+    SELECT *,
+           ROW_NUMBER() OVER(
+               PARTITION BY dept
+               ORDER BY sal DESC
+           ) rn
+    FROM dep_sal
+)
+SELECT *
+FROM cte
+WHERE rn = 1;
 
 
+-- Employees Having Same Salary in Same Department
 
-
-
-
-
-
+SELECT dept, sal, COUNT(*) cnt
+FROM dep_sal
+GROUP BY dept, sal
+HAVING COUNT(*) > 1;
 
 
 -- ===========================================================================================
---
+-- Altrimetric- 
+-- Find transactions where the same user made transactions of the same amount within 10 minutes.
 -- ==========================================================================================
+DROP TABLE IF EXISTS transactions40; CREATE TABLE transactions40 ( txn_id INT, user_id INT, txn_time DATETIME, amount INT ); INSERT INTO transactions40 VALUES (1,101,'2024-01-01 10:00:00',500), (2,101,'2024-01-01 10:05:00',500), (3,101,'2024-01-01 10:20:00',500), (4,102,'2024-01-01 11:00:00',300), (5,102,'2024-01-01 11:08:00',300), (6,102,'2024-01-01 11:30:00',400);
+
+-- +--------+---------+---------------------+--------+
+-- | txn_id | user_id | txn_time            | amount |
+-- +--------+---------+---------------------+--------+
+-- |      1 |     101 | 2024-01-01 10:00:00 |    500 |
+-- |      2 |     101 | 2024-01-01 10:05:00 |    500 |
+-- |      3 |     101 | 2024-01-01 10:20:00 |    500 |
+-- |      4 |     102 | 2024-01-01 11:00:00 |    300 |
+-- |      5 |     102 | 2024-01-01 11:08:00 |    300 |
+-- |      6 |     102 | 2024-01-01 11:30:00 |    400 |
+-- +--------+---------+---------------------+--------+
 
 
+-- Find transactions where the same user made transactions of the same amount within 10 minutes
+
+WITH cte AS (
+    SELECT 
+        txn_id,
+        user_id,
+        txn_time,
+        amount,
+        LAG(txn_time) OVER(
+            PARTITION BY user_id, amount
+            ORDER BY txn_time
+        ) AS prev_txn_time
+    FROM transactions40
+)
+SELECT *
+FROM cte
+WHERE TIMESTAMPDIFF(
+          MINUTE,
+          prev_txn_time,
+          txn_time
+      ) <= 10;
+
+-- --- Using selft join--
 
 
+SELECT 
+    a.txn_id,
+    a.user_id,
+    a.txn_time,
+    a.amount,
+    b.txn_id AS matched_txn,
+    b.txn_time AS matched_time
+FROM transactions40 a
+JOIN transactions40 b
+ON a.user_id = b.user_id
+AND a.amount = b.amount
+AND a.txn_id < b.txn_id
+AND TIMESTAMPDIFF(
+        MINUTE,
+        a.txn_time,
+        b.txn_time
+    ) <= 10;
 
+-- ---PySpark-----
+-- df = df.withColumn("txn_time",to_timestamp("txn_time")
+-- window_spec = Window.partitionBy( "user_id","amount" ).orderBy("txn_time")
+-- result = df.withColumn( "prev_time",lag("txn_time").over(window_spec) ).withColumn(
+--     "time_diff",
+--     (col("txn_time").cast("long") - col("prev_time").cast("long")) / 60
+-- ).filter(
+--     col("time_diff") <= 10
+-- )
+-- result.show(truncate=False)
 
-
-
-
-
-
-
+-- 
 -- ===========================================================================================
---
+-- -- Altrimetric- 
 -- ==========================================================================================
 
+-- +--------+----------+------------+--------+----------------+
+-- | emp_id | emp_name | manager_id | salary | effective_date |
+-- +--------+----------+------------+--------+----------------+
+-- |      1 | John     |         10 |  50000 | 2024-01-01     |
+-- |      1 | John     |         10 |  58000 | 2024-03-01     |
+-- |      2 | Mary     |         10 |  42000 | 2024-01-01     |
+-- |      3 | Bob      |         20 |  45000 | 2024-02-01     |
+-- |      3 | Bob      |         20 |  48000 | 2024-04-01     |
+-- |     10 | Emma     |         20 |  90000 | 2024-01-01     |
+-- |     10 | Emma     |         20 |  95000 | 2024-05-01     |
+-- |     20 | Raj      |     <null> | 110000 | 2024-01-01     |
+-- +--------+----------+------------+--------+----------------+
+
+
+-- Find each employee’s latest salary
+
+WITH cte AS (
+    SELECT *,
+           ROW_NUMBER() OVER(
+               PARTITION BY emp_id
+               ORDER BY effective_date DESC
+           ) AS rnk
+    FROM emp_man
+)
+SELECT 
+    emp_id,
+    emp_name,
+    salary,
+    effective_date
+FROM cte
+WHERE rnk = 1;
 
 
 
+
+-- Find each manager’s maximum historical salary
+-- If You Want Only Employees Who Are Actually Managers
+
+SELECT 
+    e.emp_id AS manager_id,
+    e.emp_name AS manager_name,
+    MAX(e.salary) AS max_historical_salary
+FROM emp_man e
+WHERE e.emp_id IN (
+    SELECT DISTINCT manager_id
+    FROM emp_man
+    WHERE manager_id IS NOT NULL
+)
+GROUP BY e.emp_id, e.emp_name;
+
+-- or using self join
+
+-- | Condition                              | Meaning            |
+-- | -------------------------------------- | ------------------ |
+-- | `employee.manager_id = manager.emp_id` | Find manager ,manager salary comparison      |
+-- | `employee.emp_id = manager.manager_id`   | Find managers list ,who is exactly manager|
+
+SELECT 
+    e.emp_id,
+    e.emp_name,
+    MAX(e.salary) AS max_salary
+FROM emp_man e
+JOIN emp_man m
+ON e.emp_id = m.manager_id
+GROUP BY e.emp_id, e.emp_name;
+
+
+
+
+-- For every employee, check if:
+-- their latest salary is greater than any historical salary of their manager.
+
+WITH latest_salary AS (
+    SELECT *,
+           ROW_NUMBER() OVER(
+               PARTITION BY emp_id
+               ORDER BY effective_date DESC
+           ) AS rnk
+    FROM emp_man
+),
+
+manager_salary AS (
+    SELECT 
+        e.emp_id,
+        e.emp_name,
+        MAX(e.salary) AS max_salary
+    FROM emp_man e
+    JOIN emp_man m
+    ON e.emp_id = m.manager_id
+    GROUP BY e.emp_id, e.emp_name
+)
+
+SELECT 
+    l.emp_id,
+    l.emp_name,
+    l.salary AS latest_salary,
+
+    COALESCE(ms.emp_name, 'NO MANAGER') AS manager_name,
+
+    COALESCE(ms.max_salary, 0) AS manager_max_salary,
+
+    CASE 
+        WHEN ms.max_salary IS NULL
+        THEN 'TOP MANAGER'
+
+        WHEN l.salary > ms.max_salary
+        THEN 'YES'
+
+        ELSE 'NO'
+    END AS higher_than_manager
+
+FROM latest_salary l
+
+LEFT JOIN manager_salary ms
+ON l.manager_id = ms.emp_id
+
+WHERE l.rnk = 1;
 
 
 
