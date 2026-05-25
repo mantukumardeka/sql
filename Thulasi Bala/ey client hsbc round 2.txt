@@ -1,0 +1,228 @@
+def myfunc(n):
+  return abs(10-n)
+a = (5, 3, 1, 11, 2, 12, 17)
+x = sorted(a, key=myfunc)
+print(x)
+---------------------------
+This code sorts numbers based on their distance from 10 using a custom key function.
+Python sorts the tuple based on the value returned by myfunc(n), meaning how close each number is to 10.
+Step 4: Sorting Values
+Number	abs(10-n)	Order
+11	1	1
+12	2	2
+5	5	3
+3	7	4
+17	7	5
+2	8	6
+1	9	7
+
+ans: [11, 12, 5, 3, 17, 2, 1]
+---------------------------
+---------------------------
+
+def func(a, b):
+    a.extend(b)
+a = [4,5]
+b = [4,5,6]
+print(a)  
+func(a,b)
+print(a) 
+------------
+ans :  [4, 5]
+[4, 5, 4, 5, 6]
+------------------------------------
+------------------------------------
+------------------------------------
+my_list = [1, 7, 9, 0, 3, 8]  find the largest difference between any two numbers in this list
+  
+def max_min(a):
+    max_val = min_val = a[0]
+
+    for i in a:
+        if i > max_val:
+            max_val = i
+        if i < min_val:
+            min_val = i
+
+    print(max_val, min_val)
+    print(f"Here is the Diff {max_val - min_val}")
+
+
+my_list = [1, 7, 9, 0, 3, 8]
+max_min(my_list)
+
+
+------------------------------------
+------------------------------------
+
+x = 10
+def foo():
+    x = x + 1
+    print(x)
+
+foo()
+
+o/P:
+Python throws UnboundLocalError because x is treated as a local variable inside the function but is referenced before assignment.
+Python treats x as a local variable because you are assigning a value to it.
+But before assigning, Python tries to evaluate:
+x + 1
+It looks for local x, but it has not been defined yet, so it throws the error.
+-----------
+below will work:
+
+x = 10
+
+def foo():
+    global x
+    x = x + 1
+    print(x)
+
+foo()
+------------------------------------
+------------------------------------
+gen = (i * i for i in range (3))
+print(list(gen))
+print(list(gen))
+
+---explanation
+This creates a generator object.
+Generators produce values one by one and get exhausted after use.
+Values generated:
+0*0 = 0
+1*1 = 1
+2*2 = 4
+Step 2: First Print
+print(list(gen))
+The generator is converted to a list, so it produces all values.
+Output:
+[0, 1, 4]
+After this step, the generator is exhausted (all values already consumed).
+Step 3: Second Print
+print(list(gen))
+Now the generator has no values left, so it returns an empty list.
+Output:
+[]
+Final Output:
+[0, 1, 4]
+[]
+Generators can be iterated only once. After consumption, they become empty.
+If you want reusable values
+Use a list instead:
+gen = [i * i for i in range(3)]
+print(list(gen))
+print(list(gen))
+Output:
+[0, 1, 4]
+[0, 1, 4]
+
+A generator gets exhausted after the first iteration, so the second call returns an empty list.
+
+[0,1,4]
+[0,1,4]
+---------------------------------------------
+
+a=[0,1,4]
+b=[0,1,4]
+print(a is b)
+print(a == b)
+
+difference between is and ==
+--> == checks whether the values are equal.
+--> is checks whether both variables refer to the same memory object.
+------------------------------------------------------------------------------
+funcs = []
+for i in range(3):
+        funcs.append(lambda: i)
+
+print([f() for f in funcs])
+---
+Output
+[2, 2, 2]
+Why does this happen?
+The lambda function does not store the value of i at the time it is created.
+Instead, it references the variable i itself (this is called late binding).
+After the loop finishes:
+i = 2
+All lambda functions refer to the same variable i, whose final value is 2.
+So when the lambdas execute:
+lambda: i → 2
+lambda: i → 2
+lambda: i → 2
+Result:
+[2, 2, 2]
+Visual Idea
+During loop:
+lambda → i
+lambda → i
+lambda → i
+After loop:
+i = 2
+So all lambdas return 2.
+---
+Late Binding Meaning
+Python does not store the value of variables when lambda is created.
+Instead it stores a reference to the variable.
+So when the function runs later, it checks the current value.
+Python closures use late binding, 
+meaning lambda functions capture the variable reference instead of its value. 
+Since the loop finishes with i = 2, all lambdas return 2.
+
+---------------------------------------------------------------------------------
+Customers Table:
+Customer ID	Name	City
+1	John Levi	New York
+2	Jane Tye	Los Angeles
+3	Mike Foley	Chicago
+4	Alice White	New York
+ 
+
+Orders Table:
+Order ID	Customer ID	Order Date	Order Total
+100	1	2023-07-01	100.00
+101	2	2023-06-15	50.00
+102	3	2023-07-05	150.00
+103	1	2023-07-07	75.00
+104	4	2023-07-02	200.00
+105	1	2023-07-01	180.00
+106	2	2023-06-18	150.00
+107	4	2024-06-05	350.00
+108	5	2023-07-07	275.00
+109	3	2023-07-02	300.00
+
+
+ Find the total number of orders placed by each customer by name, excluding orders placed in June.
+----
+SELECT 
+    c.name,
+    COUNT(o.order_id) AS total_orders
+FROM customers18 c
+LEFT JOIN orders18 o
+    ON c.customer_id = o.customer_id
+    AND EXTRACT(MONTH FROM o.order_date) <> 6
+GROUP BY c.customer_id, c.name;
+-----------------------------------------------------------------------------------------------------------
+ 1.jinja templating in airflow ?
+ 2.if python is for data cleaning ,what kind of libraries do you use?
+ 3. Diff between mutable and immutable? did you use in real time?
+ 4.what does key do in sorted()?
+ 5.time complexity of using the approach max() and min()functions?
+ 6. scheduling task in future date in airflow, does it impact?
+ 7. what is xcoms? why we need them? 
+ 8.why variables alone can't automatically share run time updates between tasks and why xcom is needed?
+ 9.how to run parallel tasks in airflow?
+ 10. --i'm checking if a file is existing in some bucket or not. that is t1. and if it is true
+    i want t2 to be executed.if it is false I want t3 to be executed.How can you achieve this?
+ 11. explain dataset based triggers? even based triggers?
+ 12. diff between executors and workers in airflow?
+ 13.diff between rank(),row_number() and dense_rank()?
+ 14. --you have the data in your table now, you want the... Like there are multiple downstream teams who want to use this data,
+ but you don't want to give access to all the columns to all the teams. 
+ You want, say, column 1 and 2 to be available to team 1, and column 1, 2, 3 to be available for team 2.
+ How can you achieve this?
+ 15 --you have a customer number from the table who are like higher secure customers. If this customer number is coming in, 
+ you don't want the data to be visible for any of these, like, good offsheet customers. Can you implement that as well?
+ 
+ 
+ 
+ 

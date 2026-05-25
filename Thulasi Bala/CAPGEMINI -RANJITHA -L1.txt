@@ -1,0 +1,28 @@
+table
+order_id
+name
+order_date
+ 
+write an sql query to retrive most recent records for each order_id
+-----------------------------------------------------------------------------------
+
+customer(custeomer_id, name)
+order(order_id, customer_id,order_date)
+write a sql query to find customers who have never placed an order
+-----------------------------------------------------------------------------------
+“In our project, the source systems were on-premise databases in the client’s data center (for example inside TCS infrastructure).
+ Our goal was to move that data to Google Cloud, specifically to BigQuery for analytics.”
+How we loaded data from On-Prem (TCS) to BigQuery? EXPLAIN THE STEPS
+----------------------------------------------------------------------------------
+TRANSFORMATIONS PERFORMED IN YOUR PROJECT?
+DID YOU USE WINDOW FUNCTIONS IN YOUR PROJECTS?
+HOW YOU HANDLE IAM ROLES?
+DIFF BETWEEN AIRFLOW AND DATAFLOW?
+If one day’s data is missing in the pipeline before loading to BigQuery, how do you handle or catch it?”
+If data from a previous month is missing?  how do you handle or catch it?
+DIFFERENCE BETWEEN BOUNDED AND UNBOUNDED DATA.
+If your data pipeline or query is running more than 1 hour, how do you optimize it?
+IS THERE ANY POSSIBILITY TO USE BOTH BATCH AND STREAMING IN A SAME PIPELINE?
+
+
+

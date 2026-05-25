@@ -1,0 +1,122 @@
+list =[1,2,3,5,8,10]
+-write python code for extract  missing numbers
+
+list =[1,2,3,5,8,10]
+#write python code for extract  missing numbers
+
+row_list=set(list)
+check=[]
+for i in range(min(list),max(list)+1):
+    if i not in row_list:
+        check.append(i)
+print(check)
+
+
+
+-----------------------------------------------------------
+table:
+account_id	T-dates
+1	01-11-2024
+1	02-11-2024
+1	05-11-2024
+2	01-11-2024
+2	03-11-2024
+--extract missing transactions 
+
+========================= Recursive + cte-Distinct + cte-crossJoin + left join==================
+WITH RECURSIVE dates AS (
+
+    SELECT MIN(t_date) AS dt
+    FROM account_txn40
+
+    UNION ALL
+
+    SELECT DATE_ADD(dt, INTERVAL 1 DAY)
+
+    FROM dates
+
+    WHERE dt < (
+        SELECT MAX(t_date)
+        FROM account_txn40
+    )
+),
+
+accounts AS (
+
+    SELECT DISTINCT account_id
+    FROM account_txn40
+),
+
+all_combinations AS (
+
+    SELECT
+        a.account_id,
+        d.dt
+
+    FROM accounts a
+
+    CROSS JOIN dates d
+)
+
+SELECT
+    c.account_id,
+    c.dt AS missing_date
+
+FROM all_combinations c
+
+LEFT JOIN account_txn40 t
+ON c.account_id = t.account_id
+AND c.dt = t.t_date
+
+WHERE t.t_date IS NULL
+
+ORDER BY c.account_id, c.dt;
+
+=======================================
+-----------------------------------------------------------
+table: year-city
+year	City_id
+2020	Mumbai
+2020	Delhi
+2021	Mumbai
+2021	Pune
+2022	Delhi
+2022	Chennai
+2023	Pune
+---extract the city ,and year that introducued first
+exp output:
+2020	Mumbai
+2020	Delhi
+2021	Pune
+2022	Chennai
+-----------------------------------------------------------------
+
+=======================================
+
+SELECT 
+    MIN(year) AS first_year,
+    city_id
+FROM year_city40
+GROUP BY city_id
+ORDER BY first_year;
+
+======================================
+Explain project architecture 
+Explain time travel concept
+xcom operator
+Operators used in airflow
+Explain background process how Dataproc job run once submitted through the airflow.
+internal and external table
+Did you use external table?
+How do you handle external connections in airflow like amazon s3 ,red shift etc? expected answer is hooks?
+Did you use sensors?
+what data validation you do?
+what is lambda?
+explain mutable and immutable concept?
+we need to enable any options in the bigquery to store last 7 days data?
+iceberg format?
+diff between view and materialized view?
+hooks?
+How did you do the jdbc connection for extracting the data?
+ 
+

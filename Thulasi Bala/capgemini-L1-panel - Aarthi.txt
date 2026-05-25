@@ -1,0 +1,52 @@
+1) suppose file is coming into gcs. how do we check it and ensure it's correct in AIRFLOW. 
+2) how to will you load data into bigquery from gcs in airflow?
+3) Bigquery optimization techniques // pipeline optimization techniques
+4) tell me about auto scaling
+5) have you used any queries to get the metadata about the tables which there in the bigquery?
+6) Let's say I have to trigger one dag from another dag . So how will you do this?
+7) write query to query the meta data table 
+8) in airflow, how will you pass the values from one task to another task? which parameter used in xcom?
+9) write query to get max and avg of salary from employee table
+10) which one is fast? truncate drop delete
+11) write query to select ids from table a that are not present in table b
+12) find the products that are never ordered.
+products:
+products_id     name
+1                          Laptop
+2                          Smartphone
+3                          Headphones
+4                          Monitor
+order_items
+id            order_id product_id
+1            101                     1
+2            102                     2
+3            103                     1
+
+13) compare two tables and assign status:
+previous emp
+1 kumar 10000
+2 vikash 10000
+3 nandy 15000
+ 
+Current emp
+2 vikash 15000
+3 nandy 15000
+4 kiran    10000
+ 
+expected o/p :
+ 
+1 Kumar  ex employee
+2 Vikash current employee
+3 Nandy current employee
+4 kiran  new employee
+
+14) you have a colimn with multiple chatacters and you want first 4 characters.
+ 
+15) In an Airflow DAG, how do you define tasks and how do you define the sequence between them? 
+
+16) you have string , and you need to find  the largest word in string using python
+
+17) how do you define permissions in bigquery?
+
+18) how do you set up alerting set up in your project?
+

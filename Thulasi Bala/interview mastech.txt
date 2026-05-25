@@ -1,0 +1,470 @@
+# [MastechDigital](https://www.mastechdigital.com?utm_source=chatgpt.com) Assessment Platform
+
+## SQL, Python & PySpark Assessment — 30 Questions
+
+### Progress
+
+* SQL Answered: 1 / 10
+* Python Answered: 0 / 10
+* PySpark Answered: 0 / 10
+* Total Progress: 1 / 30
+
+---
+
+# Dataset Information
+
+## employees / employees_df
+
+| Column    | Type   | Sample     |
+| --------- | ------ | ---------- |
+| emp_id    | INT    | 101        |
+| name      | STRING | Alice      |
+| dept_id   | STRING | D01        |
+| salary    | INT    | 70000      |
+| join_date | DATE   | 2019-03-15 |
+| status    | STRING | active     |
+
+---
+
+## departments / departments_df
+
+| Column    | Type   | Sample      |
+| --------- | ------ | ----------- |
+| dept_id   | STRING | D01         |
+| dept_name | STRING | Engineering |
+| location  | STRING | New York    |
+| budget    | INT    | 500000      |
+
+---
+
+# SQL Questions (1–10)
+
+### Q1. Display the names of all employees along with their department names.
+
+```sql id="m8x2pk"
+SELECT e.name, d.dept_name
+FROM employees e
+JOIN departments d
+ON e.dept_id = d.dept_id;
+```
+
+---
+
+### Q2. Find the department(s) that have no employees.
+
+```sql id="u4v8rt"
+SELECT d.dept_id, d.dept_name
+FROM departments d
+LEFT JOIN employees e
+ON d.dept_id = e.dept_id
+WHERE e.emp_id IS NULL;
+```
+
+---
+
+### Q3. Find the highest salary in each department along with the department name.
+
+```sql id="p7m1qw"
+SELECT 
+    d.dept_name,
+    MAX(e.salary) AS highest_salary
+FROM employees e
+JOIN departments d
+ON e.dept_id = d.dept_id
+GROUP BY d.dept_name;
+```
+
+---
+
+### Q4. Find employees whose salary is greater than the average salary of all employees.
+
+```sql id="n5t2xp"
+SELECT *
+FROM employees
+WHERE salary > (
+    SELECT AVG(salary)
+    FROM employees
+);
+```
+
+---
+
+### Q5. Count the number of employees in each department (include departments with 0 employees).
+
+```sql id="r8v4pk"
+SELECT 
+    d.dept_name,
+    COUNT(e.emp_id) AS employee_count
+FROM departments d
+LEFT JOIN employees e
+ON d.dept_id = e.dept_id
+GROUP BY d.dept_name;
+```
+
+---
+
+### Q6. Find the employee(s) with the second highest salary.
+
+```sql id="f6v1pk"
+SELECT *
+FROM employees
+WHERE salary = (
+    SELECT MAX(salary)
+    FROM employees
+    WHERE salary < (
+        SELECT MAX(salary)
+        FROM employees
+    )
+);
+```
+
+---
+
+### Q7. List departments in 'New York' and the total salary expense for each.
+
+```sql id="q2m7xt"
+SELECT 
+    d.dept_name,
+    SUM(e.salary) AS total_salary
+FROM departments d
+JOIN employees e
+ON d.dept_id = e.dept_id
+WHERE d.location = 'New York'
+GROUP BY d.dept_name;
+```
+
+---
+
+### Q8. Find employees who joined after 2020, along with their department name.
+
+```sql id="w9k3zp"
+SELECT 
+    e.name,
+    d.dept_name,
+    e.join_date
+FROM employees e
+JOIN departments d
+ON e.dept_id = d.dept_id
+WHERE YEAR(e.join_date) > 2020;
+```
+
+---
+
+### Q9. Find the department with the highest average salary.
+
+```sql id="k8m1rq"
+SELECT 
+    d.dept_name,
+    AVG(e.salary) AS avg_salary
+FROM employees e
+JOIN departments d
+ON e.dept_id = d.dept_id
+GROUP BY d.dept_name
+ORDER BY avg_salary DESC
+LIMIT 1;
+```
+
+---
+
+### Q10. Display all departments and employees using RIGHT JOIN (show departments with no employees).
+
+```sql id="u3k8mw"
+SELECT 
+    e.name,
+    d.dept_name
+FROM employees e
+RIGHT JOIN departments d
+ON e.dept_id = d.dept_id;
+```
+
+---
+
+# Python Questions (11–20)
+
+### Q11. Merge both DataFrames on dept_id (inner join) and display employee names with department names.
+
+```python id="k5p2xn"
+merged_df = employees_df.merge(departments_df, on='dept_id', how='inner')
+print(merged_df[['name', 'dept_name']])
+```
+
+---
+
+### Q12. Create a pivot table showing average salary per department per location.
+
+```python id="v4m9qp"
+pivot_df = employees_df.merge(departments_df, on='dept_id') \
+                       .pivot_table(values='salary',
+                                    index='dept_name',
+                                    columns='location',
+                                    aggfunc='mean')
+
+print(pivot_df)
+```
+
+---
+
+### Q13. Group by dept_id: compute count, mean salary, max salary. Sort by mean salary descending.
+
+```python id="d8n3xr"
+result = employees_df.groupby('dept_id')['salary'] \
+                     .agg(['count', 'mean', 'max']) \
+                     .sort_values(by='mean', ascending=False)
+
+print(result)
+```
+
+---
+
+### Q14. Left-merge employees with departments. Fill NaN in 'location' with 'Unknown'. Drop duplicate rows.
+
+```python id="7xm5an"
+df = employees_df.merge(departments_df, on='dept_id', how='left')
+
+df['location'] = df['location'].fillna('Unknown')
+
+df = df.drop_duplicates()
+
+print(df)
+```
+
+---
+
+### Q15. Add a 'salary_band' column: <55000='Junior', 55000-75000='Mid', >75000='Senior'.
+
+```python id="6ep8m7"
+def salary_band(salary):
+    if salary < 55000:
+        return 'Junior'
+    elif salary <= 75000:
+        return 'Mid'
+    else:
+        return 'Senior'
+
+employees_df['salary_band'] = employees_df['salary'].apply(salary_band)
+
+print(employees_df)
+```
+
+---
+
+### Q16. Filter active employees with salary above 60000 using the .query() method.
+
+```python id="h4v2ks"
+result = employees_df.query("status == 'active' and salary > 60000")
+
+print(result)
+```
+
+---
+
+### Q17. Convert join_date to datetime, extract the year, and count employees per join year.
+
+```python id="crk4nz"
+employees_df['join_date'] = pd.to_datetime(employees_df['join_date'])
+
+employees_df['join_year'] = employees_df['join_date'].dt.year
+
+result = employees_df.groupby('join_year').size()
+
+print(result)
+```
+
+---
+
+### Q18. Find departments that have no employees (not present in employees_df).
+
+```python id="v2s8pw"
+result = departments_df[
+    ~departments_df['dept_id'].isin(employees_df['dept_id'])
+]
+
+print(result)
+```
+
+---
+
+### Q19. Rank employees by salary within each department using groupby and rank.
+
+```python id="q5m2xr"
+employees_df['rank'] = employees_df.groupby('dept_id')['salary'] \
+                                   .rank(method='dense', ascending=False)
+
+print(employees_df)
+```
+
+---
+
+### Q20. Create a cross-tabulation of status vs location (after merging both DataFrames).
+
+```python id="q6w8er"
+df = employees_df.merge(departments_df, on='dept_id')
+
+result = pd.crosstab(df['status'], df['location'])
+
+print(result)
+```
+
+---
+
+# PySpark Questions (21–30)
+
+### Q21. Join both DataFrames and display only active employees with their department names.
+
+```python id="z1x3cv"
+result = employees_df.join(departments_df, "dept_id") \
+                     .filter(col("status") == "active") \
+                     .select("name", "dept_name")
+
+result.show()
+```
+
+---
+
+### Q22. Use a window function to rank employees by salary within each department (highest first).
+
+```python id="b7n2mk"
+from pyspark.sql.window import Window
+
+window_spec = Window.partitionBy("dept_id").orderBy(col("salary").desc())
+
+result = employees_df.withColumn(
+    "rank",
+    dense_rank().over(window_spec)
+)
+
+result.show()
+```
+
+---
+
+### Q23. Add a 'salary_band' column: <55000='Junior', 55000-75000='Mid', >75000='Senior'.
+
+```python id="l9p4qw"
+result = employees_df.withColumn(
+    "salary_band",
+    when(col("salary") < 55000, "Junior")
+    .when(col("salary") <= 75000, "Mid")
+    .otherwise("Senior")
+)
+
+result.show()
+```
+
+---
+
+### Q24. Find departments that have no employees using a left anti join.
+
+```python id="e4r7ty"
+result = departments_df.join(
+    employees_df,
+    on="dept_id",
+    how="left_anti"
+)
+
+result.show()
+```
+
+---
+
+### Q25. Group by dept_id: count, avg salary, max salary. Join with dept names. Sort by avg desc.
+
+```python id="u7i9op"
+result = employees_df.groupBy("dept_id") \
+    .agg(
+        count("*").alias("employee_count"),
+        avg("salary").alias("avg_salary"),
+        max("salary").alias("max_salary")
+    ) \
+    .join(departments_df, "dept_id") \
+    .orderBy(col("avg_salary").desc())
+
+result.show()
+```
+
+---
+
+### Q26. Write a UDF to classify tenure: <3yrs='New', 3-5yrs='Mid', >5yrs='Veteran'. (Assume 2025)
+
+```python id="a2s5df"
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
+
+def classify_tenure(year):
+    tenure = 2025 - year.year
+
+    if tenure < 3:
+        return "New"
+    elif tenure <= 5:
+        return "Mid"
+    else:
+        return "Veteran"
+
+tenure_udf = udf(classify_tenure, StringType())
+
+result = employees_df.withColumn(
+    "tenure_category",
+    tenure_udf(col("join_date"))
+)
+
+result.show()
+```
+
+---
+
+### Q27. Use broadcast() for an optimized join with departments_df. Cache result and count rows.
+
+```python id="g6h8jk"
+from pyspark.sql.functions import broadcast
+
+result = employees_df.join(
+    broadcast(departments_df),
+    "dept_id"
+)
+
+result.cache()
+
+print(result.count())
+```
+
+---
+
+### Q28. Find departments where total salary exceeds 40% of their budget.
+
+```python id="m3n5bv"
+result = employees_df.groupBy("dept_id") \
+    .agg(sum("salary").alias("total_salary")) \
+    .join(departments_df, "dept_id") \
+    .filter(col("total_salary") > col("budget") * 0.4)
+
+result.select("dept_name", "total_salary", "budget").show()
+```
+
+---
+
+### Q29. Use lag() to show each employee's salary and the previous employee's salary (ordered by salary desc).
+
+```python id="x9p2zr"
+window_spec = Window.orderBy(col("salary").desc())
+
+result = employees_df.withColumn(
+    "previous_salary",
+    lag("salary").over(window_spec)
+)
+
+result.show()
+```
+
+---
+
+### Q30. Get distinct locations from departments_df and distinct statuses from employees_df. Union them into a single 'value' column.
+
+```python id="t4w8mq"
+locations = departments_df.select(col("location").alias("value")).distinct()
+
+statuses = employees_df.select(col("status").alias("value")).distinct()
+
+result = locations.union(statuses)
+
+result.show()
+```

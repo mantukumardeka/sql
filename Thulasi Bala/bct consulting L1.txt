@@ -1,0 +1,210 @@
+1. orders table
+column	type	description
+order_id	STRING	unique order id
+customer_id	STRING	customer identifier
+order_timestamp	TIMESTAMP	time of order
+order_status	STRING	completed, cancelled
+payment_method	STRING	card, wallet, cod
+total_amount	FLOAT	order value
+shipping_city	STRING	city of delivery
+Example
+order_id: O10291
+customer_id: C81921
+order_timestamp: 2025-01-12 13:22:01
+order_status: completed
+payment_method: card
+total_amount: 1249.99
+shipping_city: Mumbai
+
+2. order_items table
+column	type
+order_item_id	STRING
+order_id	STRING
+product_id	STRING
+quantity	INT
+item_price	FLOAT
+
+3. products table
+column	type
+product_id	STRING
+product_name	STRING
+category	STRING
+brand	STRING
+cost_price	FLOAT
+selling_price	FLOAT
+
+4. customers table
+column	type
+customer_id	STRING
+signup_date	DATE
+city	STRING
+state	STRING
+customer_segment	STRING
+Segments:
+regular
+premium
+enterprise
+
+5. logistics table
+ 
+column	type
+shipment_id	STRING
+order_id	STRING
+warehouse_id	STRING
+shipped_timestamp	TIMESTAMP
+delivered_timestamp	TIMESTAMP
+delivery_status	STRING
+ 
+ gcs->dataproc->
+ 
+ 
+ 1️⃣ Raw CSV files land in GCS
+gs://retail-data/raw/orders/
+gs://retail-data/raw/order_items/
+2️⃣ Spark ETL on Dataproc
+cleanse data
+join datasets
+compute metrics
+3️⃣ Curated tables stored in BigQuery
+retail_analytics.sales_summary
+retail_analytics.customer_metrics
+retail_analytics.delivery_metr
+
+
+import libraries
+
+project_id
+region=
+clustername
+pysparkjob =
+
+
+
+
+with Dag (
+	dag_id="etl scrpit",
+	start_date=datetime(2026,01,01),
+	schdele_interval="@daily"
+) as dag:
+	submitsparkjob=DataProcSubmitJobOperator(
+		task_id="submit job"
+		job=pysparkjob
+		)
+
+load=GCSToBigqueryOperator(
+		task_id=
+		bucket=
+		source_bucket=
+		destination_table=
+		source_format="CSV"
+		
+)
+
+-TOP 5 CITIES WITH HIGHEST RVENUEE IN LAST 30 DAYS
+
+=================Group by + limit============
+
+SELECT city, SUM(revenue) total_revenue
+FROM orders
+GROUP BY city
+ORDER BY total_revenue DESC
+LIMIT 5;
+
+WITH cte AS (
+
+    SELECT
+        city,
+        SUM(revenue) AS total_revenue
+
+    FROM orders
+
+    WHERE order_date >= CURDATE() - INTERVAL 30 DAY
+
+    GROUP BY city
+),
+
+====================================================
+
+rnk_cte AS (
+
+    SELECT
+        city,
+        total_revenue,
+
+        DENSE_RANK() OVER(
+            ORDER BY total_revenue DESC
+        ) AS rnk
+
+    FROM cte
+)
+
+SELECT *
+FROM rnk_cte
+
+WHERE rnk <= 5;
+===============================================
+-write pyspark code for DAILY SALES FOR CATEGERY using orders,items and products table
+
+============
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+
+spark = SparkSession.builder.appName("DailyCategorySales").getOrCreate()
+
+# orders table
+orders_data = [
+    (1, '2025-05-01'),
+    (2, '2025-05-01'),
+    (3, '2025-05-02')
+]
+
+orders_schema = ["order_id", "order_date"]
+
+orders_df = spark.createDataFrame(orders_data, orders_schema)
+
+# items table
+items_data = [
+    (1, 101, 2),
+    (1, 102, 1),
+    (2, 101, 1),
+    (3, 103, 3)
+]
+
+items_schema = ["order_id", "product_id", "quantity"]
+
+items_df = spark.createDataFrame(items_data, items_schema)
+
+# products table
+products_data = [
+    (101, "Electronics", 500),
+    (102, "Clothing", 200),
+    (103, "Electronics", 300)
+]
+
+products_schema = ["product_id", "category", "price"]
+
+products_df = spark.createDataFrame(products_data, products_schema)
+
+# Daily sales for category
+result = orders_df.join(items_df, "order_id") \
+    .join(products_df, "product_id") \
+    .withColumn("sales_amount", col("quantity") * col("price")) \
+    .groupBy("order_date", "category") \
+    .agg(sum("sales_amount").alias("total_sales")) \
+    .orderBy("order_date", "category")
+
+result.show()
+==============================================
+
+-intro and project architecture
+-optimization techniques in bigquery and pyspark job
+-how do you handle data skew
+-how do you handle schema evolution in etl pipeline
+-write script for etl pipeline and spark job submission
+
+
+
+
+
+

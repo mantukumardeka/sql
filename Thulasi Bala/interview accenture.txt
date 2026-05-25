@@ -1,0 +1,153 @@
+
+
+-----------------------------------------------------------------------------------------------------------------------
+table1		table2
+3			3
+3			3
+3
+
+apply joins on above table.
+LEFT JOIN =6
+RIGHT JOIN =6
+INNER JOIN =6
+
+---------------------------------------------------------------------------------------------------------------------------
+find numbers that appear continuously at least 3 times.
+
+id	num
+1	1
+2	1
+3	1
+4	2
+5	2
+6	3
+7	3
+8	3
+9	3
+exp output
+-----------
+1 
+3
+
+with cte as (
+select num,id,id-row_number() over(partition by num order by id )as grp
+from numbers
+)
+select num from cte group by num,grp having count(*) >=3
+
+select distinct num from (
+			select 
+				num,lag(num,1) over (order by id) as prev1,
+				lag(num,2)over(order by id) as prev2
+			from numbers
+) t
+where num=prev1 and num = prev2;
+
+------------------------------------------------------------------------------------------------------------------------
+avg sales of current day+previous 2 days 
+
+date		sales
+2024-01-01	100
+2024-01-02	200
+2024-01-03	300
+2024-01-04	400
+2024-01-05	500
+
+exp output:
+-----------
+date		sales	avg_sales
+2024-01-01	100		100
+2024-01-02	200		150
+2024-01-03	300		200
+2024-01-04	400		300
+2024-01-05	500		400
+
+
+SELECT 
+    date,
+    sales,
+    AVG(sales) OVER (
+        ORDER BY date 
+        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+    ) AS avg_sales
+FROM sales_table;
+
+-----------------------------------------------------------------------------------------------------------------------------
+👉 (A,B) and (B,A) are the same pair
+👉 Need to find the pair with maximum total duration
+| name1 | name2 | duration |
+| ----- | ----- | -------- |
+| A     | B     | 15       |
+| B     | A     | 10       |
+| A     | C     | 5        |
+| C     | A     | 7        |
+| C     | A     | 30       |
+| D     | E     | 12       |
+| E     | D     | 8        |
+
+SELECT person1, person2, SUM(duration) AS total_duration
+FROM (
+    SELECT 
+        LEAST(name1, name2) AS person1,
+        GREATEST(name1, name2) AS person2,
+        duration
+    FROM calls
+) t
+GROUP BY person1, person2
+ORDER BY total_duration DESC
+LIMIT 1;
+
+-----------------------------------------------------------------------------------------------------------------------------
+Take the input from the username and the age. If the username is greater than 21 years, 
+then he is eligible. Actually, you should try to accept the input from the username and the age. 
+Username, age, some data, and as a input. Okay? And if the age is greater than 21, then you should print that username is eligible. 
+Username is eligible. Okay. I need to write in a Python code, right? And if the user is not eligible, 
+then print his name in a reverse order. User not eligible. We can write reverse name. Okay.
+
+# Take input from user
+username = input("Enter username: ")
+age = int(input("Enter age: "))
+
+# Check eligibility
+if age > 21:
+    print(username, "is eligible")
+else:
+    print("User not eligible")
+    print("Reversed name:", username[::-1])
+	
+-----------------------------------------------------------------------------------------------------------------------------------------
+You have a table and a query that is performing very poorly.
+To improve performance, you decide to partition the table based on Column1.
+After partitioning, you run the same query again, but the performance remains the same.
+
+What could be the reason for no performance improvement?
+------------------------------------------------------------------------------------------------------------------------------------------
+Yesterday, you designed a data pipeline where the expected data volume from the source is 1 TB per day in CSV format.
+The pipeline ran successfully for 10 days, ingesting 1 TB per day, resulting in 10 TB total data.
+
+On the 11th day, the source system suddenly delivers 20 TB of data instead of the expected 1 TB.
+
+What could be the possible reasons for this sudden spike in data volume?
+-----------------------------------------------------------------------------------------------------------------------------------------
+DIFF BETWEEN LIST TUPLE SET
+DIFF BETWEEN DATAWAREHOUSE ,DATLAKE,DATAMART
+-------------------------------------------------------------------------------------------------------------------------------------------
+WHAT IS DAG
+Y IT IS CALLED DAG?
+DEFAULT ARGUMENTS IN DAG
+MANDATORY ARGUMENTS IN DAG
+WRITE TASK FOR LOAD DATA FROM GCS TO BIGQUERY  TABLE
+WHAT IS OPERATOR
+WHAT IS TASK
+Which file formats does BigQuery support?
+WHAT IS PARTITIONINF AND CLUSTERING
+HOW MANY COLUMNS DOEST PARTITIONING AND CLUESTERING IN TABLE ?
+DOES STRING TYPE SUPPORT FOR PARTITIONING IN BIGQUERY?
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+In a DAG, Task1 → Task2 → Task3 → Task4
+Task1, Task2, Task3 executed successfully.
+But Task4 is not executing and DAG is still in running state.
+What could be the reason?
+
+

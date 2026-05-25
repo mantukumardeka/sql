@@ -1,0 +1,53 @@
+#write a query in sql to get the sample output
+
+Sample Input: 
+#product_id sale_date sales_amount 
+P1 2025-03-01 100
+P2 2025-03-01 200 
+P1 2025-03-02 300 
+P2 2025-03-02 400 
+P1 2025-03-03 500 
+
+#Sample Output: 
+product_id month total_sal ranks 
+P1 2025-03-01 900 1
+P2 2025-03-01 600 2
+
+select
+   product_id,
+   DATE_TRUNC(sale_date, MONTH) AS month,
+   SUM(sales_amount) AS total_sal,
+   RANK() OVER (ORDER BY
+SUM(sales_amount) DESC) AS ranks
+FROM sales_table
+GROUP BY product_id, month;
+
+
+select *
+FROM sales_table
+QUALIFY
+ROW_NUMBER() OVER (
+PARTITION BY product_id, sales_date
+ORDER BY updated_ts DESC
+) = 1;
+
+----------------------Airlow---------
+task A >> task B
+
+task A >> [task B, task C]
+-----------------------------------
+
+
+lst = [1,2,3,4]
+con = lst[::-1]
+print (con)
+
+
+rev = ""
+for c in s:
+    rev = [c] + rev
+print(rev)
+
+
+
+Basic questions on Airflow, Bigqery, optimization techniques in BQ, examples, cloud storage classes, operators in airflow, Dataflow

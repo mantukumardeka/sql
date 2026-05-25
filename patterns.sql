@@ -247,11 +247,6 @@ WHERE rnk = 1;
 
 
 
-
-
-
-
-
 -- #########################################################################################
 -- AMERICAN EXPRESS:
 -- #########################################################################################
@@ -283,6 +278,119 @@ SELECT
 FROM cte
 WHERE rn <= 5
 GROUP BY affiliate_id;
+
+-- #########################################################################################
+--  27. Recursive Hierarchy (CTE)  
+-- #########################################################################################
+
+-- 1. Retrieve the full employee hierarchy starting from the CEO down to all levels.
+
+-- +--------+-------+---------+--------+------------+---------------+
+-- | emp_id | name  | dept    | salary | manager_id | department_id |
+-- +--------+-------+---------+--------+------------+---------------+
+-- |      1 | Ravi  | IT      |  50000 |     <null> |             1 |
+-- |      2 | Anita | HR      |  60000 |          1 |             2 |
+-- |      3 | Kumar | IT      |  55000 |          1 |             1 |
+-- |      4 | Neha  | Finance |  70000 |          2 |             3 |
+-- |      5 | Amit  | HR      |  65000 |          2 |             2 |
+-- |      6 | Sara  | IT      |  52000 |          1 |             1 |
+-- |      7 | John  | Finance |  72000 |          4 |             3 |
+-- |      8 | Priya | IT      |  58000 |          1 |        <null> |
+-- |      9 | Rahul | HR      |  62000 |          2 |        <null> |
+-- |     10 | Meena | Finance |  71000 |          4 |             3 |
+-- +--------+-------+---------+--------+------------+---------------+
+
+WITH RECURSIVE emp_hierarchy AS (
+
+    -- 🔹 Anchor: CEO level (root of hierarchy)
+    SELECT
+        emp_id,
+        name,
+        dept,
+        salary,
+        manager_id,
+        1 AS level
+    FROM employees40
+    WHERE manager_id IS NULL
+
+    UNION ALL
+
+    -- 🔹 Recursive: get employees reporting to previous level
+    SELECT
+        e.emp_id,
+        e.name,
+        e.dept,
+        e.salary,
+        e.manager_id,
+        eh.level + 1
+    FROM employees40 e
+    JOIN emp_hierarchy eh
+        ON e.manager_id = eh.emp_id
+)
+
+SELECT *
+FROM emp_hierarchy
+ORDER BY level, emp_id;
+
+-- ====================================
+
+-- Add Full Reporting Path (VERY IMPORTANT)
+
+WITH RECURSIVE subordinates AS (
+
+    SELECT
+        emp_id,
+        name,
+        manager_id,
+        CAST(name AS CHAR(1000)) AS path,
+        1 AS level
+    FROM employees40
+    WHERE emp_id = 1
+
+    UNION ALL
+
+    SELECT
+        e.emp_id,
+        e.name,
+        e.manager_id,
+        CONCAT(s.path, ' -> ', e.name),
+        s.level + 1
+    FROM employees40 e
+    JOIN subordinates s
+        ON e.manager_id = s.emp_id
+)
+
+SELECT *
+FROM subordinates;
+
+-- =============================================
+
+-- 1. Calculate hierarchy depth or levels in a tree structure.
+
+—WITH RECURSIVE emp_tree AS (
+    SELECT emp_id, name, manager_id, salary
+    FROM employees40
+
+    UNION ALL
+
+    SELECT
+        m.emp_id,
+        m.name,
+        m.manager_id,
+        e.salary
+    FROM employees40 e
+    JOIN emp_tree m
+        ON e.manager_id = m.emp_id
+)
+SELECT manager_id, SUM(salary)
+FROM emp_tree
+GROUP BY manager_id;
+
+
+
+
+
+
 
 
 
