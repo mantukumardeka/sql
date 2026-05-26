@@ -100,6 +100,7 @@ load=GCSToBigqueryOperator(
 		
 )
 
+=====================================================
 -TOP 5 CITIES WITH HIGHEST RVENUEE IN LAST 30 DAYS
 
 =================Group by + limit============
@@ -110,6 +111,7 @@ GROUP BY city
 ORDER BY total_revenue DESC
 LIMIT 5;
 
+---------------or-----------------------
 WITH cte AS (
 
     SELECT
@@ -145,7 +147,7 @@ WHERE rnk <= 5;
 ===============================================
 -write pyspark code for DAILY SALES FOR CATEGERY using orders,items and products table
 
-============
+============================================================================
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *

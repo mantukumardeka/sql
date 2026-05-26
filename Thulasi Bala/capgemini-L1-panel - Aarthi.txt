@@ -5,9 +5,12 @@
 5) have you used any queries to get the metadata about the tables which there in the bigquery?
 6) Let's say I have to trigger one dag from another dag . So how will you do this?
 7) write query to query the meta data table 
-8) in airflow, how will you pass the values from one task to another task? which parameter used in xcom?
+8) In airflow, how will you pass the values from one task to another task? which parameter used in xcom?
 9) write query to get max and avg of salary from employee table
-10) which one is fast? truncate drop delete
+10) which one is fast? truncate drop delete?
+
+DROP is fastest but removes schema, TRUNCATE is faster than DELETE because it removes all rows without row-by-row logging, while DELETE is the slowest as it logs each row and supports rollback.
+
 11) write query to select ids from table a that are not present in table b
 12) find the products that are never ordered.
 products:
@@ -17,7 +20,7 @@ products_id     name
 3                          Headphones
 4                          Monitor
 order_items
-id            order_id product_id
+id            order_id       product_id
 1            101                     1
 2            102                     2
 3            103                     1
@@ -40,13 +43,64 @@ expected o/p :
 3 Nandy current employee
 4 kiran  new employee
 
-14) you have a colimn with multiple chatacters and you want first 4 characters.
+
+=============================================================================
+
+--  COALESCE returns the first non-null value from multiple columns, allowing us to merge values
+--  from previous and current tables into a single unified record.
+
+-- ================================
+SELECT 
+    COALESCE(p.emp_id, c.emp_id) AS emp_id,
+    COALESCE(p.name, c.name) AS name,
+    CASE
+        WHEN p.emp_id IS NOT NULL AND c.emp_id IS NULL THEN 'Ex Employee'
+        WHEN p.emp_id IS NOT NULL AND c.emp_id IS NOT NULL THEN 'Current Employee'
+        WHEN p.emp_id IS NULL AND c.emp_id IS NOT NULL THEN 'New Employee'
+    END AS status
+FROM prev_emp20 p
+LEFT JOIN curr_emp20 c
+    ON p.emp_id = c.emp_id
+
+UNION ALL
+
+SELECT 
+    c.emp_id,
+    c.name,
+    'New Employee' AS status
+FROM curr_emp20 c
+LEFT JOIN prev_emp20 p
+    ON c.emp_id = p.emp_id
+WHERE p.emp_id IS NULL;
+=================================================================
+
+14) you have a colummn with multiple characters and you want first 4 characters.
+
+---------------------------
+Use LEFT(column_name, 4) or SUBSTRING(column_name, 1, 4) to extract the first 4 characters from a string column.
+-------------------------------
  
 15) In an Airflow DAG, how do you define tasks and how do you define the sequence between them? 
 
 16) you have string , and you need to find  the largest word in string using python
 
-17) how do you define permissions in bigquery?
+=========================================
+#you have string , and you need to find  the largest word in string using python
 
-18) how do you set up alerting set up in your project?
+s="Mantu Kumar Deka is good in Data Engineering"
+print(f"Here is the String: {s}")
+new_s=s.split(" ")
+# print(new_s)
+
+max=new_s[0]
+for i in new_s:
+    if len(i) >len(max):
+     max=i
+
+print(f"S0 Maximum length is :{max}")
+===================================
+
+17) How do you define permissions in BigQuery?
+
+18) How do you set up alerting set up in your project?
 
