@@ -971,28 +971,117 @@ GROUP BY c.customer_id, c.name;
 
 
 -- =========================================================================================
--- 19--  
+-- 19--   Infosys-
+-- =========================================================================================
+DROP TABLE IF EXISTS logins19; CREATE TABLE logins19 (user_id INT, login_date DATE, next_login_date DATE); INSERT INTO logins19 VALUES (1,'2024-01-01','2024-01-02'),(1,'2024-01-02','2024-01-03'),(1,'2024-01-03','2024-01-05'),(1,'2024-01-05',NULL),(2,'2024-02-10','2024-02-11'),(2,'2024-02-11','2024-02-12'),(2,'2024-02-12',NULL),(3,'2024-03-01','2024-03-03'),(3,'2024-03-03','2024-03-04'),(3,'2024-03-04','2024-03-05'),(3,'2024-03-05',NULL);
+
+-- +---------+------------+-----------------+
+-- | user_id | login_date | next_login_date |
+-- +---------+------------+-----------------+
+-- |       1 | 2024-01-01 | 2024-01-02      |
+-- |       1 | 2024-01-02 | 2024-01-03      |
+-- |       1 | 2024-01-03 | 2024-01-05      |
+-- |       1 | 2024-01-05 | <null>          |
+-- |       2 | 2024-02-10 | 2024-02-11      |
+-- |       2 | 2024-02-11 | 2024-02-12      |
+-- |       2 | 2024-02-12 | <null>          |
+-- |       3 | 2024-03-01 | 2024-03-03      |
+-- |       3 | 2024-03-03 | 2024-03-04      |
+-- |       3 | 2024-03-04 | 2024-03-05      |
+-- |       3 | 2024-03-05 | <null>          |
+-- +---------+------------+-----------------+
+
+WITH cte AS (
+    SELECT *,
+           DATE_SUB(login_date,
+           INTERVAL ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) DAY) AS grp
+    FROM logins19
+)
+SELECT user_id
+FROM cte
+GROUP BY user_id, grp
+HAVING COUNT(*) >= 3;
+
+
+-- or-
+
+WITH cte AS (
+    SELECT
+        user_id,
+        login_date,
+        LEAD(login_date, 1) OVER (PARTITION BY user_id ORDER BY login_date) AS d1,
+        LEAD(login_date, 2) OVER (PARTITION BY user_id ORDER BY login_date) AS d2
+    FROM logins19
+)
+SELECT DISTINCT user_id
+FROM cte
+WHERE DATEDIFF(d1, login_date) = 1
+  AND DATEDIFF(d2, d1) = 1;
+
+
+
+
+-- =========================================================================================
+-- 20--CapGemini
 -- =========================================================================================
 
+DROP TABLE IF EXISTS prev_emp20; CREATE TABLE prev_emp20 (emp_id INT, name VARCHAR(50), salary INT);
+DROP TABLE IF EXISTS curr_emp20; CREATE TABLE curr_emp20 (emp_id INT, name VARCHAR(50), salary INT);
+INSERT INTO prev_emp20 VALUES (1,'Kumar',10000),(2,'Vikash',10000),(3,'Nandy',15000);
+INSERT INTO curr_emp20 VALUES (2,'Vikash',15000),(3,'Nandy',15000),(4,'Kiran',10000);
+select * prev_emp20;
+-- +--------+--------+--------+
+-- | emp_id | name   | salary |
+-- +--------+--------+--------+
+-- |      1 | Kumar  |  10000 |
+-- |      2 | Vikash |  10000 |
+-- |      3 | Nandy  |  15000 |
+-- +--------+--------+--------+
+select * from curr_emp20;
+-- +--------+--------+--------+
+-- | emp_id | name   | salary |
+-- +--------+--------+--------+
+-- |      2 | Vikash |  15000 |
+-- |      3 | Nandy  |  15000 |
+-- |      4 | Kiran  |  10000 |
+-- +--------+--------+--------+
+
+-- expected o/p :
+--  
+-- 1 Kumar  ex employee
+-- 2 Vikash current employee
+-- 3 Nandy current employee
+-- 4 kiran  new employee
 
 
+--  COALESCE returns the first non-null value from multiple columns, allowing us to merge values
+--  from previous and current tables into a single unified record.
 
+-- ================================
+SELECT 
+    COALESCE(p.emp_id, c.emp_id) AS emp_id,
+    COALESCE(p.name, c.name) AS name,
+    CASE
+        WHEN p.emp_id IS NOT NULL AND c.emp_id IS NULL THEN 'Ex Employee'
+        WHEN p.emp_id IS NOT NULL AND c.emp_id IS NOT NULL THEN 'Current Employee'
+        WHEN p.emp_id IS NULL AND c.emp_id IS NOT NULL THEN 'New Employee'
+    END AS status
+FROM prev_emp20 p
+LEFT JOIN curr_emp20 c
+    ON p.emp_id = c.emp_id
 
+UNION ALL
 
+SELECT 
+    c.emp_id,
+    c.name,
+    'New Employee' AS status
+FROM curr_emp20 c
+LEFT JOIN prev_emp20 p
+    ON c.emp_id = p.emp_id
+WHERE p.emp_id IS NULL;
 
-
-
-
--- =========================================================================================
--- 20--
--- =========================================================================================
-
-
-
-
-
-
-
+-- =============================
 
 
 -- =========================================================================================
