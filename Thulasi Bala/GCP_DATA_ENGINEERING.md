@@ -534,7 +534,7 @@ Professional Data Engineer
 Question #: 18
 Topic #: 1
 
-[All Professional Data Engineer Questions]
+[All Professional Data Engineer Questions] -
 
 Business owners at your company have given you a database of bank transactions. Each row contains the user ID, transaction type, transaction location, and transaction amount. They ask you to investigate what type of machine learning can be applied to the data. Which three machine learning applications can you use? (Choose three.) 
 
